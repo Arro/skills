@@ -11,6 +11,7 @@ Scaffold the per-repo configuration that the engineering skills assume:
 - **Issue tracker** — where issues live (GitHub by default; local markdown is also supported out of the box)
 - **Triage labels** — the strings used for the five canonical triage roles
 - **Domain docs** — where `CONTEXT.md` and ADRs live, and the consumer rules for reading them
+- **Project slug** — the project's slug-case name and compact prefix, for skills that file per-project output
 
 This is a prompt-driven skill, not a deterministic script. Explore, present what you found, confirm with the user, then write.
 
@@ -21,7 +22,7 @@ This is a prompt-driven skill, not a deterministic script. Explore, present what
 Look at the current repo to understand its starting state. Read whatever exists; don't assume:
 
 - `git remote -v` and `.git/config` — is this a GitHub repo? Which one?
-- `AGENTS.md` and `CLAUDE.md` at the repo root — does either exist? Is there already an `## Agent skills` section in either?
+- `AGENTS.md` and `CLAUDE.md` at the repo root — does either exist? Is there already an `## Agent skills` or `## Project slug` section in either?
 - `CONTEXT.md` and `CONTEXT-MAP.md` at the repo root
 - `docs/adr/` and any `src/*/docs/adr/` directories
 - `docs/agents/` — does this skill's prior output already exist?
@@ -60,12 +61,30 @@ The defaults are the five canonical roles, each label string equal to its name: 
 
 Offer **multi-context** — a root `CONTEXT-MAP.md` pointing to per-context `CONTEXT.md` files — only when exploration found monorepo signals. Then confirm which layout they want.
 
+**Section D — Project slug.** If the block already exists, confirm it rather than re-asking.
+
+Otherwise, ask two questions in turn, each with a suggested default the user can accept in a word:
+
+> Project slug? (suggested: `<repo-name-as-slug>`)
+
+> Prefix? (suggested: `<the slug's initials>`)
+
+The **slug** is the project's canonical slug-case name; the **prefix** is a compact abbreviation of it. Each consuming skill defines its own use — `gpt-image-2`, for example, files generated images in a slug-named folder and starts every filename with the prefix. Record them as a `## Project slug` block in the same file chosen in step 4:
+
+```markdown
+## Project slug
+
+- slug: echo-vault
+- prefix: ev
+```
+
 ### 3. Confirm and edit
 
 Show the user a draft of:
 
 - The `## Agent skills` block to add to whichever of `CLAUDE.md` / `AGENTS.md` is being edited (see step 4 for selection rules)
 - The contents of `docs/agents/issue-tracker.md`, `docs/agents/domain.md`, and `docs/agents/triage-labels.md` (the last only when `triage` is installed)
+- The `## Project slug` block
 
 Let them edit before writing.
 
@@ -100,6 +119,8 @@ The block:
 ```
 
 Include the `### Triage labels` sub-block, and write `docs/agents/triage-labels.md`, only when `triage` is installed and Section B ran. When it isn't, both are omitted.
+
+Also write Section D's `## Project slug` block into the same file, as its own top-level section after `## Agent skills` (updating any existing block in-place).
 
 Then write the docs files using the seed templates in this skill folder as a starting point:
 
