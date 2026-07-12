@@ -9,7 +9,7 @@ disable-model-invocation: true
 
 Pick up the ticket whose issue number was passed as the argument (call it `<num>` below), work in an isolated git worktree, and take it through to an open PR. Stop before merge. Designed so multiple `/pickup` sessions can run in parallel without colliding. If no issue number was given, stop and ask for one.
 
-Everything project-specific — validation commands, extra gitignored config files, schema/migration rules, dev-server port constraints — lives in the project's `CLAUDE.md`, not here. Read it before you start and treat it as binding.
+Project parameters for this workflow — the session tag and any extra gitignored files to copy into a worktree — live in the project's `docs/agents/worktrees.md`; read it if it exists. Everything else project-specific — validation commands, schema/migration rules, dev-server port constraints — lives in the project's `CLAUDE.md`. Read both before you start and treat them as binding.
 
 ## Steps
 
@@ -27,7 +27,7 @@ Everything project-specific — validation commands, extra gitignored config fil
    - `feat/<num>-<slug>` if labeled `enhancement`.
    - Slug = first 4–5 meaningful words of the title, kebab-case, lowercase.
 
-   Then, as your very next output, tell the user to rename this session so the sidebar isn't misleading (it often inherits a stale title from a prior `/queue` or unrelated turn). You cannot run `/rename` yourself — it is a session-control command and is not agent-invocable — so surface it for the user to copy. Include a short human-readable label derived from the issue title (≈3–6 words, enough to recognise the issue at a glance in the sidebar — not just the number), prefixed with the project's session tag: the tag the project's `CLAUDE.md` defines, or failing that the initials of the repo name's hyphenated words (`amber-waveform` → `aw`).
+   Then, as your very next output, tell the user to rename this session so the sidebar isn't misleading (it often inherits a stale title from a prior `/queue` or unrelated turn). You cannot run `/rename` yourself — it is a session-control command and is not agent-invocable — so surface it for the user to copy. Include a short human-readable label derived from the issue title (≈3–6 words, enough to recognise the issue at a glance in the sidebar — not just the number), prefixed with the project's session tag: the tag `docs/agents/worktrees.md` defines, or failing that the initials of the repo name's hyphenated words (`amber-waveform` → `aw`).
 
    Emit the `/rename` command on its **own fenced code block** (not inline `` `code` ``) so the GUI clients render a copy button on it. One short intro line, then the block — and nothing else on the line inside the block, so a one-click copy yields a directly paste-able command:
 
@@ -50,7 +50,7 @@ Everything project-specific — validation commands, extra gitignored config fil
    - `cd "$WT"` for the rest of the session.
    - **Copy gitignored local files** the app needs to run but that don't travel with a worktree. At minimum the env files — copy every root-level `.env*` from the main checkout except the committed `.env.example`:
      `for f in "$MAIN"/.env*; do b=$(basename "$f"); [ "$b" = ".env.example" ] && continue; cp "$f" "$WT/$b"; done`
-     Without this, the dev server will fail in the worktree with missing-env errors. Also copy any other gitignored config the project's `CLAUDE.md` calls out as needed to build or run (e.g. an `ios/Config.xcconfig`).
+     Without this, the dev server will fail in the worktree with missing-env errors. Also copy any other gitignored config `docs/agents/worktrees.md` lists as needed to build or run (e.g. an `ios/Config.xcconfig`).
    - Install dependencies with the project's package manager (worktrees share `.git` but not `node_modules`; pnpm's content-addressed store makes `pnpm install` fast).
 
 6. **Implement per the brief.** Follow the acceptance criteria literally. If anything in the brief is ambiguous, contradictory, or under-specified, **stop and ask** — do not guess and do not silently make a judgment call. Adhere to all `CLAUDE.md` conventions, and read the project's domain docs first where they exist (`CONTEXT.md`, `docs/adr/`).
