@@ -1,0 +1,3 @@
+interface:
+  display_name: "rename-thread"
+  short_description: "Emit a copy-able /rename block titling this thread"

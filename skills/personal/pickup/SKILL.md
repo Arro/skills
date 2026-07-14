@@ -27,19 +27,7 @@ Project parameters for this workflow — the session tag and any extra gitignore
    - `feat/<num>-<slug>` if labeled `enhancement`.
    - Slug = first 4–5 meaningful words of the title, kebab-case, lowercase.
 
-   Then, as your very next output, tell the user to rename this session so the sidebar isn't misleading (it often inherits a stale title from a prior `/queue` or unrelated turn). You cannot run `/rename` yourself — it is a session-control command and is not agent-invocable — so surface it for the user to copy. Include a short human-readable label derived from the issue title (≈3–6 words, enough to recognise the issue at a glance in the sidebar — not just the number), prefixed with the project's session tag: the tag `docs/agents/worktrees.md` defines, or failing that the initials of the repo name's hyphenated words (`amber-waveform` → `aw`).
-
-   Emit the `/rename` command on its **own fenced code block** (not inline `` `code` ``) so the GUI clients render a copy button on it. One short intro line, then the block — and nothing else on the line inside the block, so a one-click copy yields a directly paste-able command:
-
-   📝 Rename this session (copy the line below):
-
-   ````
-   ```
-   /rename [<tag>] #<num> <short label>
-   ```
-   ````
-
-   e.g. the block would contain `/rename [aw] #37 forge weighted-fill logic`.
+   Then, as your very next output, run the `/rename-thread` skill with the title `#<num> <short label>` — a short human-readable label derived from the issue title (≈3–6 words, enough to recognise the issue at a glance in the sidebar — not just the number). The skill prefixes the project's session tag and emits the copy-able `/rename` block for the user. This matters because the session often inherits a stale title from a prior `/queue` or unrelated turn.
 
 5. **Create an isolated worktree.** Never work in the main checkout — other `/pickup` sessions may be using it.
    - Locate the main repo root: `MAIN=$(git worktree list --porcelain | awk '/^worktree / {print $2; exit}')`
