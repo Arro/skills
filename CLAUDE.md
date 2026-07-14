@@ -31,3 +31,8 @@ Every skill that dispatches a subagent says to start it with a fresh context win
 ### Triage labels
 
 Canonical names, unchanged. See `docs/agents/triage-labels.md`. Issues are judged against [`SCOPE.md`](./SCOPE.md).
+
+## Project slug
+
+- slug: skills
+- prefix: sk
