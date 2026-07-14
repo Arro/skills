@@ -43,7 +43,9 @@ Project parameters for this workflow — the session tag and any extra gitignore
 
 5. **Create an isolated worktree.** Never work in the main checkout — other `/pickup` sessions may be using it.
    - Locate the main repo root: `MAIN=$(git worktree list --porcelain | awk '/^worktree / {print $2; exit}')`
-   - Worktree path: `WT="$MAIN/../$(basename "$MAIN")-wt/<num>"`
+   - Worktree path: `WT="$MAIN/.worktrees/<num>"` — inside the main checkout so the worktree is easy to inspect in an editor that has the repo open.
+   - Make sure the container directory is ignored. Git does **not** auto-ignore a nested worktree; without this the main checkout would show the whole worktree as untracked. Use the clone-local exclude file (no commit needed in the project):
+     `grep -qxF '/.worktrees/' "$MAIN/.git/info/exclude" || echo '/.worktrees/' >> "$MAIN/.git/info/exclude"`
    - If `$WT` already exists, stop and ask — it means an earlier run on this ticket didn't clean up. Don't silently reuse.
    - **Branch point is always `origin/main`. Never create a stacked PR.** If the brief, its acceptance criteria, or a "Coordination note" tells you to branch from another feature branch (e.g. `feat/<other>`), to base the PR on anything other than `main`, or to depend on code that only exists in a still-open PR — **stop and ask.** Surface it plainly: e.g. "The brief says to branch from `feat/6` because PR #7 is still open. Stacked PRs are forbidden — that work should be sequenced (land the base ticket first, then pick this one up fresh off updated `main`). Branch from `main` instead, or hold this ticket until its dependency merges?" Do not stack to make symbols "exist" — a dependency on unmerged code means the ticket isn't ready, not that you should branch off the open branch.
    - Otherwise create it from a fresh main: `git -C "$MAIN" fetch origin && git -C "$MAIN" worktree add "$WT" -b <branch> origin/main`
@@ -72,6 +74,7 @@ Project parameters for this workflow — the session tag and any extra gitignore
 ## Guardrails
 
 - Never force-push. Never push to `main`. Never merge a PR.
+- Never run `git clean` in the main checkout. Worktrees live gitignored under `$MAIN/.worktrees/`, so `git clean -fdx` from `$MAIN` would destroy every in-flight worktree, not just build artifacts.
 - **Never create a stacked PR.** Always branch from `origin/main` and always open the PR with `--base main`. If the brief points you at a non-`main` branch point or PR base, that's a sequencing problem to surface (step 5), not an instruction to follow.
 - Never work in the main checkout — always in the worktree created in step 5.
 - Stay in scope. Out-of-scope cleanups go in a follow-up issue, not this PR. Use `mcp__ccd_session__spawn_task` or `gh issue create`.
