@@ -12,7 +12,7 @@ Harnesses title a thread from its first message and never revisit it, so the sid
 
 - If a title was passed (by the user or an invoking skill), use it as the label.
 - Otherwise derive one: 3–6 words naming the thread's durable task — what you'd search the sidebar for months later, not the latest tangent.
-- In a project, prefix the session tag unless the label already starts with one: the tag the project's `CLAUDE.md` defines, or failing that the initials of the repo name's hyphenated words (`amber-waveform` → `aw`), as `[<tag>]`. Outside a project, no prefix.
+- In a project, prefix the session tag unless the label already starts with one: the `prefix` from the `## Project slug` block in the project's `CLAUDE.md` or `AGENTS.md`, or failing that the initials of the repo name's hyphenated words (`amber-waveform` → `aw`), as `[<tag>]`. Outside a project, no prefix.
 
 ## Emit the block
 
