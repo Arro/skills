@@ -11,12 +11,12 @@ Close out the ticket whose issue number was passed as the argument (call it `<nu
 
 ## Preconditions
 
-- **Must run from the main checkout, not a worktree.** You cannot remove a worktree you are standing inside. Determine the main root with `MAIN=$(git worktree list --porcelain | awk '/^worktree / {print $2; exit}')`. If the current directory is under the `<repo>-wt/` sibling directory, `cd "$MAIN"` first, then proceed.
+- **Must run from the main checkout, not a worktree.** You cannot remove a worktree you are standing inside. Determine the main root with `MAIN=$(git worktree list --porcelain | awk '/^worktree / {print $2; exit}')`. If the current directory is under `$MAIN/.worktrees/` (or the legacy `<repo>-wt/` sibling directory), `cd "$MAIN"` first, then proceed.
 
 ## Steps
 
 1. **Locate the work.**
-   - Worktree path: `WT="$MAIN/../$(basename "$MAIN")-wt/<num>"`.
+   - Worktree path: `WT="$MAIN/.worktrees/<num>"`. If that doesn't exist, also check the legacy sibling layout older `/pickup` runs used: `WT="$MAIN/../$(basename "$MAIN")-wt/<num>"`.
    - If `$WT` exists, read its branch: `BRANCH=$(git -C "$WT" branch --show-current)`.
    - If `$WT` does not exist (worktree already gone), find the branch another way: the issue's PR. Use `gh issue view <num> --json` cross-referenced with `gh pr list --search "<num> in:body" --state all` to identify the branch/PR. If you cannot confidently identify the PR, stop and ask.
 

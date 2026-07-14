@@ -33,7 +33,7 @@ Report on the current state of the `ready-for-agent` queue in the current repo. 
    ```
    Call out any `⚠ STACKED` PR prominently in the summary — it needs retargeting to `main` (once its base lands) before it can be wrapped up.
 
-4. **Local worktrees** — show any `<repo>-wt/*` worktrees on this machine (the sibling directory `/pickup` creates, named after the main checkout), so the user can see what's lingering after merge:
+4. **Local worktrees** — show any `.worktrees/*` worktrees on this machine (the gitignored directory `/pickup` creates inside the main checkout; older runs may have used the legacy `<repo>-wt/*` sibling layout), so the user can see what's lingering after merge:
    ```
    git worktree list
    ```
