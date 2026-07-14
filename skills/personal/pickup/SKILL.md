@@ -9,7 +9,7 @@ disable-model-invocation: true
 
 Pick up the ticket whose issue number was passed as the argument (call it `<num>` below), work in an isolated git worktree, and take it through to an open PR. Stop before merge. Designed so multiple `/pickup` sessions can run in parallel without colliding. If no issue number was given, stop and ask for one.
 
-Project parameters for this workflow — the session tag and any extra gitignored files to copy into a worktree — live in the project's `docs/agents/worktrees.md`; read it if it exists. Everything else project-specific — validation commands, schema/migration rules, dev-server port constraints — lives in the project's `CLAUDE.md`. Read both before you start and treat them as binding.
+Project parameters for this workflow — any extra gitignored files to copy into a worktree — live in the project's `docs/agents/worktrees.md`; read it if it exists. Everything else project-specific — validation commands, schema/migration rules, dev-server port constraints — lives in the project's `CLAUDE.md`. Read both before you start and treat them as binding.
 
 ## Steps
 
