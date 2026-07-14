@@ -7,4 +7,5 @@ Skills tied to my own setup, not promoted in the plugin.
 - **[obsidian-vault](./obsidian-vault/SKILL.md)** — Search, create, and manage notes in an Obsidian vault with wikilinks and index notes.
 - **[pickup](./pickup/SKILL.md)** — Pick up a ready-for-agent GitHub issue in an isolated worktree and take it through to an open PR.
 - **[queue](./queue/SKILL.md)** — Show the ready-for-agent queue — what's available to pick up, what's already claimed, and any conflicts.
+- **[rename-thread](./rename-thread/SKILL.md)** — Emit a copy-able `/rename` block that gives the current thread a findable title.
 - **[wrapup](./wrapup/SKILL.md)** — Finish a picked-up ticket — review-gate, merge the PR, then tear down the worktree and branch.
