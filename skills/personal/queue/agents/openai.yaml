@@ -1,0 +1,5 @@
+interface:
+  display_name: "Queue"
+  short_description: "Show the ready-for-agent pickup queue"
+policy:
+  allow_implicit_invocation: false

@@ -1,0 +1,5 @@
+interface:
+  display_name: "Pickup"
+  short_description: "Take a ready-for-agent issue to an open PR"
+policy:
+  allow_implicit_invocation: false

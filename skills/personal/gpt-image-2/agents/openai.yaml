@@ -1,0 +1,3 @@
+interface:
+  display_name: "gpt-image-2"
+  short_description: "Generate or edit images with gpt-image-2"
