@@ -16,7 +16,7 @@ The ticket can live in GitHub or Linear — detect which from the argument:
 
 Call the ticket's reference `<id>` below: the issue number for GitHub, the identifier (e.g. `ABC-123`) for Linear. Where a step's command is GitHub-specific (`gh …`), use the equivalent Linear MCP tool for a Linear ticket.
 
-Project parameters for this workflow — any extra gitignored files to copy into a worktree — live in the project's `docs/agents/worktrees.md`; read it if it exists. Everything else project-specific — validation commands, schema/migration rules, and the dev-server start command (which must honor the `PORT` this run assigns in step 5) — lives in the project's `CLAUDE.md`. Read both before you start and treat them as binding.
+Project parameters for this workflow — any extra gitignored files to copy into a worktree, and any secondary port names the project's services need (e.g. `INNGEST_PORT = PORT + 10000`) — live in the project's `docs/agents/worktrees.md`; read it if it exists. Everything else project-specific — validation commands, schema/migration rules — lives in the project's `CLAUDE.md`. Read both before you start and treat them as binding.
 
 ## Steps
 
@@ -59,7 +59,12 @@ Project parameters for this workflow — any extra gitignored files to copy into
      done
      printf 'PORT=%s\n' "$port" >> "$WT/.env.local"   # canonical: the worktree owns this PORT in its env
      ```
-     Hashing `"<slug>-<id>"` (not the id alone) keeps issue `#15` in two different repos on different ports; `cksum` is deterministic across runs and folds GitHub numbers and Linear identifiers in identically. Writing `PORT` into the worktree env is the single source of truth: env-honoring frameworks (e.g. Next.js dev) bind it automatically, and for others the project's `CLAUDE.md` start command references `$PORT`. Report the assigned port so the reviewer knows where the app would serve.
+     Hashing `"<slug>-<id>"` (not the id alone) keeps issue `#15` in two different repos on different ports; `cksum` is deterministic across runs and folds GitHub numbers and Linear identifiers in identically. Writing `PORT` into the worktree env is the single source of truth — but only if the dev script defers to it:
+     - **Guard — check the dev script honors `PORT`.** Projects commonly pin their port with a flag (`next dev -p 3008`), and a port flag **beats** the env var. Inspect the project's `dev`/`dev:*` scripts in `package.json`: any hardcoded `-p`/`--port` number that doesn't reference `${PORT…}` means your assignment will be silently ignored — **stop and surface it** ("this project's `dev` script pins port `<n>`; the assigned `PORT` will be ignored — the script needs `-p ${PORT:-<n>}`"). Do not start a dev server on a pinned port that may belong to the main checkout.
+     - **Secondary ports.** If the project's `docs/agents/worktrees.md` declares extra port names (e.g. `INNGEST_PORT = PORT + 10000`), derive each from the assigned `PORT` and append them to the same env file.
+     - **Browser verification** in the worktree uses `http://localhost:$PORT` directly. A `CLAUDE.md` rule mandating a reverse-proxied hostname (e.g. `https://<app>.localhost`) describes the *main checkout* — that hostname does not route to this worktree, and following it would verify the wrong server's code.
+
+     Report the assigned port(s) so the reviewer knows where the app would serve.
    - Install dependencies with the project's package manager (worktrees share `.git` but not `node_modules`; pnpm's content-addressed store makes `pnpm install` fast).
 
 6. **Implement per the contract.** Follow the acceptance criteria literally. If anything in the contract is ambiguous, contradictory, or under-specified, **stop and ask** — do not guess and do not silently make a judgment call. Adhere to all `CLAUDE.md` conventions, and read the project's domain docs first where they exist (`CONTEXT.md`, `docs/adr/`).
@@ -73,13 +78,14 @@ Project parameters for this workflow — any extra gitignored files to copy into
    - `gh pr create --base main` with a body that links the issue (same `Closes …` reference as the commit — Linear's GitHub integration picks up the magic word from the PR body), summarises what changed, and notes anything you deviated on or want the reviewer to look at. The PR base is **always** `main` — never another feature branch.
 
 10. **Stop the dev server, then report.**
-    - **Stop the worktree's dev server** so nothing lingers past the thread. Kill whatever is listening on this worktree's `PORT`, but only if that process's working directory is inside `$WT` — never take down an unrelated main-checkout server:
+    - **Stop the worktree's dev servers** so nothing lingers past the thread. Kill whatever is listening on this worktree's `PORT` and any secondary `*_PORT`s, but only processes whose working directory is inside `$WT` — never take down an unrelated main-checkout server:
       ```sh
-      port=$(grep -hE '^PORT=' "$WT"/.env* 2>/dev/null | tail -1 | cut -d= -f2)
-      for pid in $(lsof -tiTCP:"$port" -sTCP:LISTEN -n -P 2>/dev/null); do
-        case "$(lsof -a -p "$pid" -d cwd -Fn 2>/dev/null | sed -n 's/^n//p')" in
-          "$WT"|"$WT"/*) kill "$pid" ;;
-        esac
+      for port in $(grep -hE '^[A-Z_]*PORT=' "$WT"/.env* 2>/dev/null | cut -d= -f2 | sort -u); do
+        for pid in $(lsof -tiTCP:"$port" -sTCP:LISTEN -n -P 2>/dev/null); do
+          case "$(lsof -a -p "$pid" -d cwd -Fn 2>/dev/null | sed -n 's/^n//p')" in
+            "$WT"|"$WT"/*) kill "$pid" ;;
+          esac
+        done
       done
       ```
     - Output the PR URL, the worktree path (so the user knows where to clean up after merge: `git worktree remove <path>`), and the assigned `PORT`.

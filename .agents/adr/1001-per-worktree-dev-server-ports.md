@@ -27,7 +27,13 @@ preferred = 3100 + (cksum("<slug>-<id>") mod 900)
 
 **Bind-check-and-bump.** At assignment time `/pickup` checks whether the preferred port is actually bound (`lsof -iTCP:$port -sTCP:LISTEN`) and, if so, probes upward within the band. A real bind check — not a maintained registry — is the collision guard, because it catches *everything* at once: other live worktrees, the always-on main servers, and anything random. It cannot leak, because the "registry" is just what's currently listening.
 
-**Injection.** The chosen port is written as `PORT` into the worktree's env file during worktree setup, alongside the `.env*` copy `/pickup` already does. Frameworks that honor `PORT` (e.g. Next.js dev) then bind it automatically; for those that don't (e.g. Vite, which needs `--port`), the project's `CLAUDE.md` documents a start command that references `$PORT`. Either way the **canonical fact is "each worktree has a `PORT` in its environment"** — a single source of truth both paths key off.
+**Injection.** The chosen port is written as `PORT` into the worktree's env file during worktree setup, alongside the `.env*` copy `/pickup` already does. The **canonical fact is "each worktree has a `PORT` in its environment"** — a single source of truth everything else keys off.
+
+**Enforcement lives in the dev script, not in prose.** Real projects pin their dev port with a CLI flag (`next dev -p 3008`), and a port flag **beats** the `PORT` env var — so env injection alone is silently defeated exactly where it matters. The convention: dev scripts express their port as `${PORT:-<pinned default>}` (npm/pnpm run scripts through `sh`, so this works verbatim in `package.json`). The main checkout, where `PORT` is unset, keeps its pinned port and any reverse-proxy hostname mapped to it; a worktree inherits its assignment with no flag, no instruction, and nothing for an agent to remember mid-task. `/pickup` guards the gap: after assigning `PORT` it checks the project's dev script actually references it, and stops loudly — "this project pins its port; the assignment will be ignored" — rather than colliding silently.
+
+**Multi-service projects** (a web server plus a job runner, say) need more than one port per worktree. `/pickup` stays generic: it writes only `PORT`, and the project declares any secondary port names in its `docs/agents/worktrees.md` (the per-project parameters file `/pickup` already reads), each derived from `PORT` at a fixed offset well clear of the band (e.g. `SOMETOOL_PORT = PORT + 10000`). Dev scripts reference them the same way (`${SOMETOOL_PORT:-<pinned default>}`).
+
+**Browser verification in a worktree uses `localhost:$PORT` directly.** A project whose `CLAUDE.md` mandates browsing via a reverse-proxied hostname is describing its *main checkout* — the worktree's port has no such hostname, and following the hostname rule from a worktree means verifying against the wrong server's code.
 
 **Shutdown.** A worktree's dev server is stopped in two places:
 - **`/pickup` (primary):** as its last act — on success *or* bail-out — it stops whatever is listening on its `PORT`. A left-behind worktree must not mean a left-behind server.
@@ -42,10 +48,12 @@ Both kill paths **verify the listening process's working directory is inside the
 - **Per-project port bands:** extra config to maintain for almost no benefit once a real bind check exists; projects already "own" their normal dev port on the machine anyway. One global band, override allowed but never required.
 - **Keying the port off the id alone:** collides across repos on common low issue numbers (see the constraint above). Folding in the slug fixes it.
 - **Tracking the server PID instead of the port:** unreliable, because `/pickup` doesn't start the server and has no handle on it. The `PORT` the worktree owns is the durable handle.
+- **A `CLAUDE.md`-documented start command as the enforcement mechanism:** prose an agent must remember to follow at the moment it starts a server, mid-implementation — and defeated outright by the hardcoded port flags real dev scripts carry. Instructions-as-enforcement was the weakest link; the `${PORT:-default}` script convention replaces it and the guard in `/pickup` catches projects that haven't adopted it.
 
 ## Invariants this creates
 
 - Every picked-up worktree has a `PORT` in its env file, unique among *live* worktrees and clear of any port already in use on the machine.
+- A project's dev scripts express every port they bind as `${PORT:-<pinned default>}` (or `${<NAME>_PORT:-…}` for secondary services) — never a bare hardcoded flag. `/pickup` refuses to proceed silently against a script that pins its port.
 - `/pickup` leaves no dev server running when it exits — success or bail-out.
 - `/wrapup` never removes a worktree while a server is still bound to its port.
-- Both shutdown paths kill only processes whose working directory is inside the worktree.
+- Both shutdown paths kill only processes whose working directory is inside the worktree, and cover secondary ports as well as `PORT`.
