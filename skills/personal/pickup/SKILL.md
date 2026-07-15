@@ -16,7 +16,7 @@ The ticket can live in GitHub or Linear — detect which from the argument:
 
 Call the ticket's reference `<id>` below: the issue number for GitHub, the identifier (e.g. `ABC-123`) for Linear. Where a step's command is GitHub-specific (`gh …`), use the equivalent Linear MCP tool for a Linear ticket.
 
-Project parameters for this workflow — any extra gitignored files to copy into a worktree — live in the project's `docs/agents/worktrees.md`; read it if it exists. Everything else project-specific — validation commands, schema/migration rules, dev-server port constraints — lives in the project's `CLAUDE.md`. Read both before you start and treat them as binding.
+Project parameters for this workflow — any extra gitignored files to copy into a worktree — live in the project's `docs/agents/worktrees.md`; read it if it exists. Everything else project-specific — validation commands, schema/migration rules, and the dev-server start command (which must honor the `PORT` this run assigns in step 5) — lives in the project's `CLAUDE.md`. Read both before you start and treat them as binding.
 
 ## Steps
 
@@ -50,6 +50,16 @@ Project parameters for this workflow — any extra gitignored files to copy into
    - **Copy gitignored local files** the app needs to run but that don't travel with a worktree. At minimum the env files — copy every root-level `.env*` from the main checkout except the committed `.env.example`:
      `for f in "$MAIN"/.env*; do b=$(basename "$f"); [ "$b" = ".env.example" ] && continue; cp "$f" "$WT/$b"; done`
      Without this, the dev server will fail in the worktree with missing-env errors. Also copy any other gitignored config `docs/agents/worktrees.md` lists as needed to build or run (e.g. an `ios/Config.xcconfig`).
+   - **Assign this worktree's dev-server port.** Parallel worktrees must not fight over the same port. Derive a deterministic **preferred** port from the project slug and the issue id, then bump past anything already listening (other worktrees, always-on main servers, anything). Read the slug from the `## Project slug` block of the main checkout's `CLAUDE.md` (the `slug:` value); default to the repo's directory name if there is no such block. Then, from the worktree:
+     ```sh
+     BASE=3100; SIZE=900                          # one shared band, 3100–3999; a project's CLAUDE.md may override
+     port=$(( BASE + ($(printf '%s' "$slug-<id>" | cksum | cut -d' ' -f1) % SIZE) ))
+     while lsof -iTCP:"$port" -sTCP:LISTEN -n -P >/dev/null 2>&1; do
+       port=$(( port >= BASE + SIZE - 1 ? BASE : port + 1 ))
+     done
+     printf 'PORT=%s\n' "$port" >> "$WT/.env.local"   # canonical: the worktree owns this PORT in its env
+     ```
+     Hashing `"<slug>-<id>"` (not the id alone) keeps issue `#15` in two different repos on different ports; `cksum` is deterministic across runs and folds GitHub numbers and Linear identifiers in identically. Writing `PORT` into the worktree env is the single source of truth: env-honoring frameworks (e.g. Next.js dev) bind it automatically, and for others the project's `CLAUDE.md` start command references `$PORT`. Report the assigned port so the reviewer knows where the app would serve.
    - Install dependencies with the project's package manager (worktrees share `.git` but not `node_modules`; pnpm's content-addressed store makes `pnpm install` fast).
 
 6. **Implement per the contract.** Follow the acceptance criteria literally. If anything in the contract is ambiguous, contradictory, or under-specified, **stop and ask** — do not guess and do not silently make a judgment call. Adhere to all `CLAUDE.md` conventions, and read the project's domain docs first where they exist (`CONTEXT.md`, `docs/adr/`).
@@ -62,9 +72,17 @@ Project parameters for this workflow — any extra gitignored files to copy into
    - `git push -u origin <branch>`
    - `gh pr create --base main` with a body that links the issue (same `Closes …` reference as the commit — Linear's GitHub integration picks up the magic word from the PR body), summarises what changed, and notes anything you deviated on or want the reviewer to look at. The PR base is **always** `main` — never another feature branch.
 
-10. **Stop and report.** Output:
-    - the PR URL
-    - the worktree path (so the user knows where to clean up after merge: `git worktree remove <path>`)
+10. **Stop the dev server, then report.**
+    - **Stop the worktree's dev server** so nothing lingers past the thread. Kill whatever is listening on this worktree's `PORT`, but only if that process's working directory is inside `$WT` — never take down an unrelated main-checkout server:
+      ```sh
+      port=$(grep -hE '^PORT=' "$WT"/.env* 2>/dev/null | tail -1 | cut -d= -f2)
+      for pid in $(lsof -tiTCP:"$port" -sTCP:LISTEN -n -P 2>/dev/null); do
+        case "$(lsof -a -p "$pid" -d cwd -Fn 2>/dev/null | sed -n 's/^n//p')" in
+          "$WT"|"$WT"/*) kill "$pid" ;;
+        esac
+      done
+      ```
+    - Output the PR URL, the worktree path (so the user knows where to clean up after merge: `git worktree remove <path>`), and the assigned `PORT`.
 
     Do not merge. Do not squash, rebase, or force-push.
 
@@ -77,7 +95,8 @@ Project parameters for this workflow — any extra gitignored files to copy into
 - Stay in scope. Out-of-scope cleanups go in a follow-up issue, not this PR. Use `mcp__ccd_session__spawn_task` or `gh issue create`.
 - If you discover the contract is wrong (e.g. an acceptance criterion is impossible or conflicts with the codebase), stop and ask — do not unilaterally redefine it.
 - If validation surfaces pre-existing failures unrelated to your change, mention them in the PR body but do not fix them in this PR.
-- If you bail out mid-run after creating the worktree, leave it in place and tell the user the path so they can resume or clean up. Do not silently delete in-progress work.
+- If you bail out mid-run after creating the worktree, leave it in place and tell the user the path so they can resume or clean up. Do not silently delete in-progress work — but still stop any dev server you started (the step-10 shutdown), so a left-behind worktree never means a left-behind server.
+- Never leave a dev server running when the session ends. On success or bail-out, stop whatever is listening on the worktree's `PORT` (verifying its working directory is inside the worktree first).
 
 ## Failure recovery
 

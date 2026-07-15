@@ -69,6 +69,10 @@ Always present. Situate the skill in the system in a sentence or two:
 - Use the skill's **leading words** (_seam_, _deep module_, _tracer bullet_) so the page and the skill speak one language.
 - Keep the page itself low-load. It is documentation *about* low-cognitive-load skills; furniture (spare headings, restated links) is the thing it is arguing against.
 
+## Decision records (ADRs)
+
+ADRs live in `.agents/adr/NNNN-<slug>.md`. This is a **fork** of the upstream skills repo, and the original maintainer keeps authoring ADRs from `0001` upward — so any decision *we* record here must not reuse a low number they might later mint. **Number fork-authored ADRs from `1001`**: take the next free number at or above `1001` (`1001`, `1002`, …), never a `0xxx` slot. The `0xxx` range belongs to upstream; the `1xxx` range is ours, so the two histories can merge without a numbering clash.
+
 ## Done when
 
 - The page exists at `docs/<bucket>/<name>.md`, and no stale page survives a rename or bucket move.

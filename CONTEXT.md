@@ -18,6 +18,13 @@ A `wayfinder` unit — a child **Issue** of a `wayfinder:map` holding a *questio
 **Triage role**:
 A canonical state-machine label applied to an **Issue** during triage (e.g. `needs-triage`, `ready-for-afk`). Each role maps to a real label string in the **Issue tracker** via `docs/agents/triage-labels.md`.
 
+**Worktree PORT**:
+The dev-server port a picked-up worktree binds, recorded as `PORT` in that worktree's env file so any server started there inherits it. Derived deterministically from the project slug and issue id, then confirmed free at assignment time; unique per *live* worktree. It is the single source of truth for "which port is this worktree's dev server on" — both the automatic (env-honoring) and the `CLAUDE.md`-documented start command key off it.
+_Avoid_: dev port, assigned port (when precision matters)
+
+**Worktree port band**:
+The shared range **Worktree PORT**s are drawn from, chosen to sit clear of the machine's always-on main-checkout servers. One band across all projects, not per-project.
+
 ## Relationships
 
 - An **Issue tracker** holds many **Issues**
