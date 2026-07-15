@@ -78,6 +78,10 @@ Always present. Situate the skill in the system in a sentence or two:
 - **Branches go in a table or a list, never in a paragraph.** Where the page presents a choice (two artifacts the skill can produce, four situations that trigger it, five options at a boundary), the reader is scanning for the one row that matches their situation. A paragraph makes them read all of it to find out. A short markdown table (condition in the left column, what to do in the right) or a bulleted list gives it back in one glance. This applies wherever the branch appears, most often in `## When to reach for it` and the free-form middle.
 - Keep the page itself low-load. It is documentation *about* low-cognitive-load skills; furniture (spare headings, restated links) is the thing it is arguing against.
 
+## Decision records (ADRs)
+
+ADRs live in `.agents/adr/NNNN-<slug>.md`. This is a **fork** of the upstream skills repo, and the original maintainer keeps authoring ADRs from `0001` upward — so any decision *we* record here must not reuse a low number they might later mint. **Number fork-authored ADRs from `1001`**: take the next free number at or above `1001` (`1001`, `1002`, …), never a `0xxx` slot. The `0xxx` range belongs to upstream; the `1xxx` range is ours, so the two histories can merge without a numbering clash.
+
 ## Done when
 
 - The page exists at `docs/<bucket>/<name>.md`, and no stale page survives a rename or bucket move.
