@@ -37,13 +37,14 @@ Close out the ticket whose issue number was passed as the argument (call it `<nu
 
 6. **Tear down the worktree.**
    - If `$WT` exists, check it's clean first: `git -C "$WT" status --porcelain`. If there are uncommitted changes, stop and ask — don't discard work.
-   - **Stop any surviving dev server (backstop).** `/pickup` should have stopped it, but a crash or a restart during review can leave one bound. Before removing the worktree, kill anything still listening on the worktree's `PORT`, but only if that process's working directory is inside `$WT`:
+   - **Stop any surviving dev server (backstop).** `/pickup` should have stopped it, but a crash or a restart during review can leave one bound. Before removing the worktree, kill anything still listening on the worktree's `PORT` or any secondary `*_PORT`, but only processes whose working directory is inside `$WT`:
      ```sh
-     port=$(grep -hE '^PORT=' "$WT"/.env* 2>/dev/null | tail -1 | cut -d= -f2)
-     for pid in $(lsof -tiTCP:"$port" -sTCP:LISTEN -n -P 2>/dev/null); do
-       case "$(lsof -a -p "$pid" -d cwd -Fn 2>/dev/null | sed -n 's/^n//p')" in
-         "$WT"|"$WT"/*) kill "$pid" ;;
-       esac
+     for port in $(grep -hE '^[A-Z_]*PORT=' "$WT"/.env* 2>/dev/null | cut -d= -f2 | sort -u); do
+       for pid in $(lsof -tiTCP:"$port" -sTCP:LISTEN -n -P 2>/dev/null); do
+         case "$(lsof -a -p "$pid" -d cwd -Fn 2>/dev/null | sed -n 's/^n//p')" in
+           "$WT"|"$WT"/*) kill "$pid" ;;
+         esac
+       done
      done
      ```
    - Remove it: `git -C "$MAIN" worktree remove "$WT"`. (Use `--force` only after you've confirmed there's nothing to lose, and say so.)
