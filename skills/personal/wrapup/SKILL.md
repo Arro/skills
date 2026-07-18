@@ -19,6 +19,7 @@ Close out the ticket whose issue number was passed as the argument (call it `<nu
    - Worktree path: `WT="$MAIN/.worktrees/<num>"`. If that doesn't exist, also check the legacy sibling layout older `/pickup` runs used: `WT="$MAIN/../$(basename "$MAIN")-wt/<num>"`.
    - If `$WT` exists, read its branch: `BRANCH=$(git -C "$WT" branch --show-current)`.
    - If `$WT` does not exist (worktree already gone), find the branch another way: the issue's PR. Use `gh issue view <num> --json` cross-referenced with `gh pr list --search "<num> in:body" --state all` to identify the branch/PR. If you cannot confidently identify the PR, stop and ask.
+   - A missing worktree with the **main checkout sitting on the ticket's branch** means `/test-drive` collapsed the worktree for local testing. That's expected — there's nothing to tear down, but step 7 must switch the main checkout back to `main` before the branch can be deleted.
 
 2. **Find the PR and its state.** `gh pr list --head "$BRANCH" --state all --json number,state,mergeStateStatus,title,url,baseRefName`. Capture the PR number, whether it is OPEN / MERGED / CLOSED, and its **base branch** (`baseRefName`).
    - If already **MERGED**: skip to step 5 (cleanup). The merge is done; just tear down.
@@ -50,6 +51,7 @@ Close out the ticket whose issue number was passed as the argument (call it `<nu
    - Remove it: `git -C "$MAIN" worktree remove "$WT"`. (Use `--force` only after you've confirmed there's nothing to lose, and say so.)
 
 7. **Delete the local branch and prune.**
+   - If the main checkout is currently **on** `$BRANCH` (the `/test-drive` case), go back to `main` first — git won't delete the checked-out branch. Confirm the tree is clean (`git -C "$MAIN" status --porcelain`; if dirty, stop and surface it — don't discard or carry along test-session changes), then `git -C "$MAIN" checkout main`.
    - `git -C "$MAIN" branch -D "$BRANCH"` — a squash-merged branch looks "unmerged" to git, so `-D` (not `-d`) is expected here and is safe because the PR is merged.
    - `git -C "$MAIN" worktree prune`
    - `git -C "$MAIN" fetch --prune` to drop the stale remote-tracking ref.
