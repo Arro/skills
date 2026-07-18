@@ -1,13 +1,13 @@
 ---
 name: wrapup
-description: Finish a picked-up ticket — review-gate, merge the PR, then tear down the worktree and branch.
+description: Finish a picked-up ticket — merge its PR once CI is green, then tear down the worktree and branch.
 argument-hint: "issue number"
 disable-model-invocation: true
 ---
 
 # /wrapup — merge a reviewed PR and clean up its worktree
 
-Close out the ticket whose issue number was passed as the argument (call it `<num>` below) after the user has reviewed its PR: merge it on their confirmation, then remove the worktree, delete the branch, and prune. Run this from the **main checkout** after they're happy with the work. If no issue number was given, stop and ask for one.
+Close out the ticket whose issue number was passed as the argument (call it `<num>` below) after the user has reviewed its PR: merge it, then remove the worktree, delete the branch, and prune. Invoking `/wrapup` **is** the merge instruction — don't ask for a further go/no-go. Only stop for input when something is genuinely unclear (which PR is meant, red CI, uncommitted work) — never as a routine confirmation. Run this from the **main checkout** after the user is happy with the work. If no issue number was given, stop and ask for one.
 
 ## Preconditions
 
@@ -24,15 +24,15 @@ Close out the ticket whose issue number was passed as the argument (call it `<nu
 2. **Find the PR and its state.** `gh pr list --head "$BRANCH" --state all --json number,state,mergeStateStatus,title,url,baseRefName`. Capture the PR number, whether it is OPEN / MERGED / CLOSED, and its **base branch** (`baseRefName`).
    - If already **MERGED**: skip to step 5 (cleanup). The merge is done; just tear down.
    - If **CLOSED** (not merged): stop and ask — the PR was abandoned; don't silently delete the work.
-   - If **OPEN**: continue to the stacked-PR check, then the review-gate.
+   - If **OPEN**: continue to the stacked-PR check, then the CI check.
 
-3. **Stacked-PR check (OPEN PRs only).** If `baseRefName` is anything other than `main`, this is a stacked PR — **do not merge, do not tear anything down.** Stop and report: "PR #<pr> is based on `<baseRefName>`, not `main`. Stacked PRs are forbidden, so `/wrapup` won't merge it. Either retarget it to `main` once `<baseRefName>` has landed (`gh pr edit <pr> --base main`, then rebase the branch onto updated `main` and resolve any conflicts), or this is a sequencing problem to sort out first." Leave the worktree, branch, and PR exactly as they are. Only continue to the review gate once the base is `main`.
+3. **Stacked-PR check (OPEN PRs only).** If `baseRefName` is anything other than `main`, this is a stacked PR — **do not merge, do not tear anything down.** Stop and report: "PR #<pr> is based on `<baseRefName>`, not `main`. Stacked PRs are forbidden, so `/wrapup` won't merge it. Either retarget it to `main` once `<baseRefName>` has landed (`gh pr edit <pr> --base main`, then rebase the branch onto updated `main` and resolve any conflicts), or this is a sequencing problem to sort out first." Leave the worktree, branch, and PR exactly as they are. Only continue to the CI check once the base is `main`.
 
-4. **Review gate (OPEN PRs only).** Before merging, surface enough for a final go/no-go and **wait for explicit confirmation**:
-   - PR title, URL, and a one-line diffstat (`gh pr diff <pr> --stat`).
-   - CI status: `gh pr checks <pr>`. If any check is **failing or still pending**, say so prominently and ask whether to merge anyway — do not merge over red/pending checks without a clear yes. (A repo may have no CI configured, in which case `gh pr checks` returns nothing — note that and proceed on the user's review alone.)
-   - If the PR includes database migration files, call it out — merging to `main` is what makes the migration part of the canonical history. Confirm it was generated the way the project's `CLAUDE.md` requires (e.g. Prisma's `migrate dev`, never `db push`).
-   - Ask: "Merge #<pr> (squash) and tear down the worktree?" Wait for a yes. Do not proceed on silence.
+4. **CI check (OPEN PRs only).** `gh pr checks <pr>`. This is the one thing that can block the merge:
+   - All green (or the repo has no CI configured, in which case `gh pr checks` returns nothing): proceed straight to the merge — no confirmation prompt.
+   - Any check **failing or still pending**: stop and report — that's a red flag, not a routine gate. Merge over red/pending checks only on an explicit go-ahead.
+
+   Things the old flow surfaced as a pre-merge gate now go in the final report (step 9) instead: PR title/URL, a one-line diffstat (`gh pr diff <pr> --stat`), and — if the PR includes database migration files — a callout that merging made the migration part of the canonical history, plus whether it was generated the way the project's `CLAUDE.md` requires (e.g. Prisma's `migrate dev`, never `db push`).
 
 5. **Merge.** `gh pr merge <pr> --squash --delete-branch`. Squash keeps `main` history one-commit-per-ticket and matches the `Closes #<num>` convention so the issue auto-closes. `--delete-branch` removes the remote branch.
 
@@ -64,7 +64,7 @@ Close out the ticket whose issue number was passed as the argument (call it `<nu
 
 9. **Verify and report.**
    - Confirm the issue closed: `gh issue view <num> --json state,closed` — `Closes #<num>` should have closed it on merge. If it's still open, close it with a comment noting the merge.
-   - Report: merge commit / PR URL, that the worktree and branch are gone, whether local `main` was fast-forwarded (or why it was skipped), and the issue's final state.
+   - Report: PR title/URL and merge commit, a one-line diffstat, that the worktree and branch are gone, whether local `main` was fast-forwarded (or why it was skipped), the issue's final state, and the migration callout from step 4 if one applies.
 
 ## Guardrails
 
