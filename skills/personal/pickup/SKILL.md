@@ -18,60 +18,72 @@ Call the ticket's reference `<id>` below: the issue number for GitHub, the ident
 
 Project parameters for this workflow — any extra gitignored files to copy into a worktree, and any secondary port names the project's services need (e.g. `INNGEST_PORT = PORT + 10000`) — live in the project's `docs/agents/worktrees.md`; read it if it exists. Everything else project-specific — validation commands, schema/migration rules — lives in the project's `CLAUDE.md`. Read both before you start and treat them as binding.
 
+## Scripts
+
+The mechanical parts of setup and teardown are scripted, in `~/.claude/skills/pickup/scripts/`. Use them rather than retyping their steps — they encode the guardrails (branch point, port collisions, killing only your own servers) and refuse rather than half-doing the job.
+
+| Script | Does | Refuses when |
+| --- | --- | --- |
+| `claim-ticket.sh <id> [--repo o/n] [--dry-run]` | Steps 1–3 in one call: fetches the issue, gates on state and label, claims it, prints the contract plus a suggested branch and thread label | Issue is not OPEN (3), lacks `ready-for-agent` (4), or belongs to someone else (5) |
+| `setup-worktree.sh <id> <branch> [--no-install] [--skip-port-guard]` | Step 5's mechanics: worktree off `origin/main`, gitignored container, copied `.env*`, collision-free `PORT` (plus any secondary ports), dependencies installed | The worktree or branch already exists (3), or the dev script would silently ignore `PORT` (4) — creating nothing in either case |
+| `stop-dev-servers.sh <worktree-path>` | Step 10's shutdown: kills listeners on the worktree's ports whose working directory is inside it | Never kills a process from outside the worktree — it says so and moves on |
+
+They are deliberately not the whole workflow. Reading the contract, the stacked-PR judgement, anything in the project's `docs/agents/worktrees.md` (throwaway databases especially — no script touches a database), and all of steps 6–9 stay yours. `claim-ticket.sh` is GitHub-only; for Linear, do steps 1–3 with the Linear MCP tools and start at `setup-worktree.sh`.
+
 ## Steps
 
-1. **Fetch the issue.** For GitHub, run `gh issue view <id> --comments`; for Linear, fetch the issue (with comments) via the Linear MCP tools. Read the full body, all comments, and labels. The contract you implement against:
-   - **GitHub:** if a comment titled `## Agent Brief` exists, the most recent one is the contract and the original body is context. If there is no agent brief, the issue body is the contract.
-   - **Linear:** the issue description is the contract; comments are context.
+1. **Fetch, gate and claim the issue.** For GitHub, one call covers this step and the next two:
 
-2. **Check the label (GitHub only).** For a GitHub issue, confirm it carries `ready-for-agent`; if not, stop and ask. Linear issues have no label gate — skip this step.
+   ```sh
+   ~/.claude/skills/pickup/scripts/claim-ticket.sh <id>
+   ```
 
-3. **Claim the issue (mutex).** Check the issue's assignee:
-   - If unassigned: assign it to yourself — `gh issue edit <id> --add-assignee @me` for GitHub, the update-issue Linear MCP tool for Linear. This is the mutex that prevents two parallel `/pickup` sessions from grabbing the same ticket.
-   - If assigned to you already: continue (probably a resumed session).
-   - If assigned to someone else: stop and ask — another agent or human is on it.
+   It prints the issue header, the contract and suggested names, then assigns the issue to you. Any non-zero exit is a stop-and-ask. Read the contract in full before going on — a `## Blocked by` section naming unmerged issues is a sequencing problem to surface, not to work around.
 
-4. **Derive a branch name.**
+   For Linear, fetch the issue with comments via the Linear MCP tools instead.
+
+   The contract you implement against: on GitHub, the most recent `## Agent Brief` comment if one exists (the body is then context), otherwise the issue body. On Linear, the description; comments are context.
+
+2. **Check the label (GitHub only).** `claim-ticket.sh` enforces this — it exits 4 when `ready-for-agent` is missing, and 3 when the issue isn't OPEN. Either way, stop and ask. Linear issues have no label gate.
+
+3. **Claim the issue (mutex).** `claim-ticket.sh` does this too: it assigns you the issue, which is what stops two parallel `/pickup` sessions grabbing the same ticket. It continues if the issue is already yours (a resumed session) and exits 5 if it belongs to someone else — stop and ask then. For Linear, assign yourself with the update-issue MCP tool.
+
+4. **Derive a branch name, then rename the thread.**
+
+   `claim-ticket.sh` already printed a `SUGGESTED_BRANCH` and `SUGGESTED_LABEL`. Take them unless they read badly, in which case build your own to the same shape:
    - `fix/<id>-<slug>` if the issue is labeled a bug, `feat/<id>-<slug>` otherwise.
    - `<id>` lowercase (e.g. `fix/123-…`, `feat/abc-123-…`). For Linear, keeping the identifier in the branch name is also what lets Linear's GitHub integration auto-link the branch and PR to the issue.
    - Slug = first 4–5 meaningful words of the title, kebab-case, lowercase.
 
-   Then, as your very next output, run the `/rename-thread` skill with the title `<id> <short label>` — a short human-readable label derived from the issue title (≈3–6 words, enough to recognise the issue at a glance in the sidebar — not just the id). The skill prefixes the project's session tag and emits the copy-able rename block for the user. This matters because the session often inherits a stale title from a prior `/queue` or unrelated turn.
+   Then run the `/rename-thread` skill with the title `<id> <short label>` (`SUGGESTED_LABEL` is exactly this) — enough to recognise the issue at a glance in the sidebar, not just the id. The session often inherits a stale title from a prior `/queue` or unrelated turn, which is what makes this worth doing at all.
+
+   **The rename block must appear on screen before you touch step 5.** `/rename` is the user's command to run, not yours, so the skill's only deliverable is a fenced block they copy — and it is worthless if it never reaches them. Emit it as visible text in the same turn you invoke the skill, with no tool calls after it. Do not carry it forward "to include in the summary", and do not treat invoking the skill as having done the step. If you reach step 5 and the block was never printed, you have skipped a deliverable: print it before continuing.
 
 5. **Create an isolated worktree.** Never work in the main checkout — other `/pickup` sessions may be using it.
-   - Locate the main repo root: `MAIN=$(git worktree list --porcelain | awk '/^worktree / {print $2; exit}')`
-   - Worktree path: `WT="$MAIN/.worktrees/<id>"` — inside the main checkout so the worktree is easy to inspect in an editor that has the repo open.
-   - Make sure the container directory is ignored. Git does **not** auto-ignore a nested worktree; without this the main checkout would show the whole worktree as untracked. Use the clone-local exclude file (no commit needed in the project):
-     `grep -qxF '/.worktrees/' "$MAIN/.git/info/exclude" || echo '/.worktrees/' >> "$MAIN/.git/info/exclude"`
-   - If `$WT` already exists, stop and ask — it means an earlier run on this ticket didn't clean up. Don't silently reuse.
-   - **Branch point is always `origin/main`. Never create a stacked PR.** If the contract, its acceptance criteria, or a "Coordination note" tells you to branch from another feature branch (e.g. `feat/<other>`), to base the PR on anything other than `main`, or to depend on code that only exists in a still-open PR — **stop and ask.** Surface it plainly: e.g. "The ticket says to branch from `feat/6` because PR #7 is still open. Stacked PRs are forbidden — that work should be sequenced (land the base ticket first, then pick this one up fresh off updated `main`). Branch from `main` instead, or hold this ticket until its dependency merges?" Do not stack to make symbols "exist" — a dependency on unmerged code means the ticket isn't ready, not that you should branch off the open branch.
-   - Otherwise create it from a fresh main: `git -C "$MAIN" fetch origin && git -C "$MAIN" worktree add "$WT" -b <branch> origin/main`
-   - `cd "$WT"` for the rest of the session.
-   - **Copy gitignored local files** the app needs to run but that don't travel with a worktree. At minimum the env files — copy every root-level `.env*` from the main checkout except the committed `.env.example`:
-     `for f in "$MAIN"/.env*; do b=$(basename "$f"); [ "$b" = ".env.example" ] && continue; cp "$f" "$WT/$b"; done`
-     Without this, the dev server will fail in the worktree with missing-env errors. Also copy any other gitignored config `docs/agents/worktrees.md` lists as needed to build or run (e.g. an `ios/Config.xcconfig`).
-   - **Assign this worktree's dev-server port.** Parallel worktrees must not fight over the same port. Derive a deterministic **preferred** port from the project slug and the issue id, then bump past anything already listening (other worktrees, always-on main servers, anything). Read the slug from the `## Project slug` block of the main checkout's `CLAUDE.md` (the `slug:` value); default to the repo's directory name if there is no such block. Then, from the worktree:
-     ```sh
-     BASE=3100; SIZE=900                          # one shared band, 3100–3999; a project's CLAUDE.md may override
-     port=$(( BASE + ($(printf '%s' "$slug-<id>" | cksum | cut -d' ' -f1) % SIZE) ))
-     while lsof -iTCP:"$port" -sTCP:LISTEN -n -P >/dev/null 2>&1; do
-       port=$(( port >= BASE + SIZE - 1 ? BASE : port + 1 ))
-     done
-     printf 'PORT=%s\n' "$port" >> "$WT/.env.local"   # canonical: the worktree owns this PORT in its env
-     ```
-     Hashing `"<slug>-<id>"` (not the id alone) keeps issue `#15` in two different repos on different ports; `cksum` is deterministic across runs and folds GitHub numbers and Linear identifiers in identically. Writing `PORT` into the worktree env is the single source of truth — but only if the dev script both sources that file and defers to `PORT` when picking its own port:
-     - **Guard — check the dev script actually picks up `PORT`.** Two separate things can defeat the assignment, and both must hold or it's silently ignored:
-       1. The script expresses its port as `${PORT:-<pinned default>}`, not a bare hardcoded `-p`/`--port` number — a hardcoded flag always beats the env var.
-       2. The script **sources `.env.local` into its own shell invocation before that flag is expanded.** `${PORT:-3008}` is substituted by the shell `npm`/`pnpm` spawns to run the script, using that shell's process environment at the moment the script starts — before Node/Next.js exists, let alone before any dotenv loader reads `.env.local`. Writing `PORT` into `.env.local` alone never reaches that shell. The script needs a sourcing preamble, e.g.:
-          ```
-          "dev": "set -a; [ -f .env.local ] && . ./.env.local; set +a; next dev -p ${PORT:-3008}"
-          ```
-       Inspect the project's `dev`/`dev:*` scripts in `package.json` for both pieces. If either is missing, **stop and surface it** with the exact snippet above, rather than assigning a `PORT` that gets silently ignored. Do not start a dev server on a pinned port that may belong to the main checkout. This is a one-time fix to the project's own `package.json` — out of scope for the ticket's PR (guardrail: stay in scope). Surface it and let the user apply it as a prerequisite commit, or open a follow-up issue; don't fold it into unrelated ticket work.
-     - **Secondary ports.** If the project's `docs/agents/worktrees.md` declares extra port names (e.g. `INNGEST_PORT = PORT + 10000`), derive each from the assigned `PORT` and append them to the same env file.
-     - **Browser verification** in the worktree uses `http://localhost:$PORT` directly. A `CLAUDE.md` rule mandating a reverse-proxied hostname (e.g. `https://<app>.localhost`) describes the *main checkout* — that hostname does not route to this worktree, and following it would verify the wrong server's code.
 
-     Report the assigned port(s) so the reviewer knows where the app would serve.
-   - Install dependencies with the project's package manager (worktrees share `.git` but not `node_modules`; pnpm's content-addressed store makes `pnpm install` fast).
+   **First, the one judgement the script can't make: branch point is always `origin/main`, and you never create a stacked PR.** If the contract, its acceptance criteria, or a "Coordination note" tells you to branch from another feature branch (e.g. `feat/<other>`), to base the PR on anything other than `main`, or to depend on code that only exists in a still-open PR — **stop and ask.** Surface it plainly: e.g. "The ticket says to branch from `feat/6` because PR #7 is still open. Stacked PRs are forbidden — that work should be sequenced (land the base ticket first, then pick this one up fresh off updated `main`). Branch from `main` instead, or hold this ticket until its dependency merges?" Do not stack to make symbols "exist" — a dependency on unmerged code means the ticket isn't ready, not that you should branch off the open branch.
+
+   Then run, from anywhere inside the repo:
+
+   ```sh
+   ~/.claude/skills/pickup/scripts/setup-worktree.sh <id> <branch>
+   ```
+
+   It creates `$MAIN/.worktrees/<id>` off `origin/main` (nested inside the main checkout so it's easy to inspect in an editor that already has the repo open, and added to the clone-local exclude file so it doesn't show up as untracked), copies every root-level `.env*` except the committed `.env.example`, assigns a free `PORT`, and installs dependencies. It prints the path, branch and port; `cd` to that path for the rest of the session.
+
+   It creates nothing and exits non-zero in two cases, both stop-and-ask:
+   - **The worktree or branch already exists** — an earlier run didn't clean up. Don't silently reuse it.
+   - **The dev script would ignore the assigned `PORT`.** Two things must both hold or the assignment is silently lost: the script expresses its port as `${PORT:-<pinned default>}` rather than a hardcoded `-p` number (a hardcoded flag always wins), and it **sources `.env.local` into its own shell invocation before that flag is expanded** — `${PORT:-3008}` is substituted by the shell `npm` spawns, long before Node exists or any dotenv loader runs, so writing `PORT` into `.env.local` alone never reaches it. The fix is a one-time change to the project's own `package.json`:
+     ```
+     "dev": "set -a; [ -f .env.local ] && . ./.env.local; set +a; next dev -p ${PORT:-3008}"
+     ```
+     That is a prerequisite commit, **not** part of this ticket's PR (guardrail: stay in scope). Surface it and let the user apply it, or open a follow-up issue. Never start a dev server on a pinned port that may belong to the main checkout. `--skip-port-guard` exists only for projects with no dev server at all.
+
+   Port assignment, for when you need to reason about it: the preferred port is a `cksum` hash of `"<slug>-<id>"` into 3100–3999, so it's stable across runs, folds GitHub numbers and Linear identifiers in identically, and keeps issue `#15` in two repos apart. The script then bumps past anything listening, anything pinned as a `${PORT:-…}` default in `package.json`, and any port already written into a sibling worktree's env — so a stopped worktree still holds its claim. Secondary ports declared in the project's `docs/agents/worktrees.md` (e.g. `INNGEST_PORT = PORT + 10000`) are derived and written alongside. Report the assigned port(s) so the reviewer knows where the app would serve.
+
+   **Then read the project's `docs/agents/worktrees.md` and do what it says.** The script deliberately stops at the filesystem: it never touches a database, and this is where rules about throwaway database branches live. Copy any other gitignored config that doc lists as needed to build or run (e.g. an `ios/Config.xcconfig`).
+
+   **Browser verification** in the worktree uses `http://localhost:$PORT` directly. A `CLAUDE.md` rule mandating a reverse-proxied hostname (e.g. `https://<app>.localhost`) describes the *main checkout* — that hostname does not route to this worktree, and following it would verify the wrong server's code.
 
 6. **Implement per the contract.** Follow the acceptance criteria literally. If anything in the contract is ambiguous, contradictory, or under-specified, **stop and ask** — do not guess and do not silently make a judgment call. Adhere to all `CLAUDE.md` conventions, and read the project's domain docs first where they exist (`CONTEXT.md`, `docs/adr/`).
 
@@ -84,17 +96,13 @@ Project parameters for this workflow — any extra gitignored files to copy into
    - `gh pr create --base main` with a body that links the issue (same `Closes …` reference as the commit — Linear's GitHub integration picks up the magic word from the PR body), summarises what changed, and notes anything you deviated on or want the reviewer to look at. The PR base is **always** `main` — never another feature branch.
 
 10. **Stop the dev server, then report.**
-    - **Stop the worktree's dev servers** so nothing lingers past the thread. Kill whatever is listening on this worktree's `PORT` and any secondary `*_PORT`s, but only processes whose working directory is inside `$WT` — never take down an unrelated main-checkout server:
+    - **Stop the worktree's dev servers** so nothing lingers past the thread:
       ```sh
-      for port in $(grep -hE '^[A-Z_]*PORT=' "$WT"/.env* 2>/dev/null | cut -d= -f2 | sort -u); do
-        for pid in $(lsof -tiTCP:"$port" -sTCP:LISTEN -n -P 2>/dev/null); do
-          case "$(lsof -a -p "$pid" -d cwd -Fn 2>/dev/null | sed -n 's/^n//p')" in
-            "$WT"|"$WT"/*) kill "$pid" ;;
-          esac
-        done
-      done
+      ~/.claude/skills/pickup/scripts/stop-dev-servers.sh "$WT"
       ```
+      It kills listeners on every port in the worktree's env files, but only those whose working directory is inside the worktree — an unrelated main-checkout server on the same port is reported and left alone.
     - Output the PR URL, the worktree path (so the user knows where to clean up after merge: `git worktree remove <path>`), and the assigned `PORT`.
+    - If the rename block from step 4 never made it on screen, emit it now — a thread nobody can find in the sidebar is the one deliverable that outlives the PR.
 
     Do not merge. Do not squash, rebase, or force-push.
 
