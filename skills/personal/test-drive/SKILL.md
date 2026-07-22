@@ -23,17 +23,13 @@ Take the branch that `/pickup` created for the issue passed as the argument (cal
    - Main checkout clean? `git -C "$MAIN" status --porcelain`. If dirty, stop and surface it — switching branches with a dirty tree carries the changes along or fails; let the user decide.
    - Note the main checkout's current branch (`git -C "$MAIN" symbolic-ref --short HEAD`) so the report can say what was switched away from.
 
-4. **Stop the worktree's dev servers.** Kill anything still listening on the worktree's `PORT` or any secondary `*_PORT`, but only processes whose working directory is inside `$WT` — never take down an unrelated server:
+4. **Stop the worktree's dev servers.**
 
    ```sh
-   for port in $(grep -hE '^[A-Z_]*PORT=' "$WT"/.env* 2>/dev/null | cut -d= -f2 | sort -u); do
-     for pid in $(lsof -tiTCP:"$port" -sTCP:LISTEN -n -P 2>/dev/null); do
-       case "$(lsof -a -p "$pid" -d cwd -Fn 2>/dev/null | sed -n 's/^n//p')" in
-         "$WT"|"$WT"/*) kill "$pid" ;;
-       esac
-     done
-   done
+   ~/.claude/skills/pickup/scripts/stop-dev-servers.sh "$WT"
    ```
+
+   It kills listeners on every port in the worktree's env files, but only those whose working directory is inside `$WT` — an unrelated server on the same port is reported and left running.
 
 5. **Tear down the worktree.** The branch survives this — only the checkout directory goes.
    - `git -C "$MAIN" worktree remove "$WT"` (use `--force` only after explicit confirmation that nothing in it matters).

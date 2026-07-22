@@ -15,7 +15,11 @@ Harnesses title a thread from its first message and never revisit it, so the sid
 - If the label references a ticket, use the tracker's native format: `#37` for a GitHub issue, but a Linear identifier as-is — `ABC-123`, never `#ABC-123`.
 - In a project, prefix the session tag unless the label already starts with one: the `prefix` from the `## Project slug` block in the project's `CLAUDE.md` or `AGENTS.md`, or failing that the initials of the repo name's hyphenated words (`amber-waveform` → `aw`), as `[<tag>]`. Outside a project, no prefix.
 
-## Emit the block
+## Emit the block — as visible text, before anything else
+
+The block is the entire deliverable, and the user can only act on it if they see it. So print it as ordinary assistant text in your **very next message, before any further tool calls**.
+
+This holds hardest when another skill invoked this one mid-workflow (`/pickup` does, at step 4): the temptation is to treat the rename as an internal bookkeeping step and press on with the real work. Don't. Emit the block, then resume. A run where the block was skipped, deferred to a closing summary, batched behind a pile of tool calls, or replaced by a claim like "I've renamed the thread" (you cannot — `/rename` is the user's to run) is a failed run, even if everything else went well.
 
 One short intro line, then the content on its **own fenced code block** (not inline `` `code` ``) so GUI clients render a copy button — and nothing else on the line inside the block, so a one-click copy yields something directly paste-able.
 
