@@ -12,6 +12,7 @@ Close out the ticket whose issue number was passed as the argument (call it `<nu
 ## Preconditions
 
 - **Must run from the main checkout, not a worktree.** You cannot remove a worktree you are standing inside. Determine the main root with `MAIN=$(git worktree list --porcelain | awk '/^worktree / {print $2; exit}')`. If the current directory is under `$MAIN/.worktrees/` (or the legacy `<repo>-wt/` sibling directory), `cd "$MAIN"` first, then proceed.
+- **Read the project's `docs/agents/worktrees.md` if it exists.** Project parameters for this workflow live there alongside the `/pickup` ones — whether the repo has CI (step 4), and any post-merge steps (step 8). Treat it as binding.
 
 ## Steps
 
@@ -28,13 +29,13 @@ Close out the ticket whose issue number was passed as the argument (call it `<nu
 
 3. **Stacked-PR check (OPEN PRs only).** If `baseRefName` is anything other than `main`, this is a stacked PR — **do not merge, do not tear anything down.** Stop and report: "PR #<pr> is based on `<baseRefName>`, not `main`. Stacked PRs are forbidden, so `/wrapup` won't merge it. Either retarget it to `main` once `<baseRefName>` has landed (`gh pr edit <pr> --base main`, then rebase the branch onto updated `main` and resolve any conflicts), or this is a sequencing problem to sort out first." Leave the worktree, branch, and PR exactly as they are. Only continue to the CI check once the base is `main`.
 
-4. **CI check (OPEN PRs only).** `gh pr checks <pr>`. This is the one thing that can block the merge:
-   - All green (or the repo has no CI configured, in which case `gh pr checks` returns nothing): proceed straight to the merge — no confirmation prompt.
+4. **CI check (OPEN PRs only).** If the project's `docs/agents/worktrees.md` declares the repo has no CI (a `## CI` section saying none), **skip this step entirely** — don't run `gh pr checks` just to rediscover that every thread. Otherwise run `gh pr checks <pr> || true` — the `|| true` matters: `gh pr checks` exits non-zero both for failing checks *and* for "no checks reported", so without it a CI-less repo produces a scary-looking failed command on every run. Read the output to tell the cases apart. This is the one thing that can block the merge:
+   - All green, or "no checks reported" (the repo has no CI): proceed straight to the merge — no confirmation prompt. If the repo turned out to have no CI and its `worktrees.md` doesn't yet say so, suggest adding a `## CI` section declaring it so future wrapups skip the lookup.
    - Any check **failing or still pending**: stop and report — that's a red flag, not a routine gate. Merge over red/pending checks only on an explicit go-ahead.
 
    Things the old flow surfaced as a pre-merge gate now go in the final report (step 9) instead: PR title/URL, a one-line diffstat (`gh pr diff <pr> --stat`), and — if the PR includes database migration files — a callout that merging made the migration part of the canonical history, plus whether it was generated the way the project's `CLAUDE.md` requires (e.g. Prisma's `migrate dev`, never `db push`).
 
-5. **Merge.** `gh pr merge <pr> --squash --delete-branch`. Squash keeps `main` history one-commit-per-ticket and matches the `Closes #<num>` convention so the issue auto-closes. `--delete-branch` removes the remote branch.
+5. **Merge.** `gh pr merge <pr> --squash`. Squash keeps `main` history one-commit-per-ticket and matches the `Closes #<num>` convention so the issue auto-closes. Do **not** pass `--delete-branch`: run from the main checkout it also tries to delete the *local* branch, which the worktree still holds — so the command exits non-zero on every normal run even though the merge landed. The remote branch is deleted in step 7 instead, after the worktree is gone.
 
 6. **Tear down the worktree.**
    - If `$WT` exists, check it's clean first: `git -C "$WT" status --porcelain`. If there are uncommitted changes, stop and ask — don't discard work.
@@ -45,9 +46,10 @@ Close out the ticket whose issue number was passed as the argument (call it `<nu
      It only kills listeners whose working directory is inside `$WT`, so an unrelated main-checkout server on the same port survives.
    - Remove it: `git -C "$MAIN" worktree remove "$WT"`. (Use `--force` only after you've confirmed there's nothing to lose, and say so.)
 
-7. **Delete the local branch and prune.**
+7. **Delete the local and remote branch, then prune.**
    - If the main checkout is currently **on** `$BRANCH` (the `/test-drive` case), go back to `main` first — git won't delete the checked-out branch. Confirm the tree is clean (`git -C "$MAIN" status --porcelain`; if dirty, stop and surface it — don't discard or carry along test-session changes), then `git -C "$MAIN" checkout main`.
    - `git -C "$MAIN" branch -D "$BRANCH"` — a squash-merged branch looks "unmerged" to git, so `-D` (not `-d`) is expected here and is safe because the PR is merged.
+   - Delete the remote branch: `git -C "$MAIN" push origin --delete "$BRANCH"`. If the ref is already gone (some repos auto-delete merged branches), that's fine — note it and move on.
    - `git -C "$MAIN" worktree prune`
    - `git -C "$MAIN" fetch --prune` to drop the stale remote-tracking ref.
 
@@ -56,6 +58,7 @@ Close out the ticket whose issue number was passed as the argument (call it `<nu
    - Confirm the tree is clean: `git -C "$MAIN" status --porcelain`. If dirty, skip the pull and tell the user (don't stash their work).
    - Pull fast-forward only: `git -C "$MAIN" pull --ff-only`. This updates cleanly when possible. If it fails because local `main` has unpushed/diverged commits, **do not** merge or rebase to force it — report that local `main` has diverged and leave it for the user to reconcile (`git push` or rebase, their call).
    - If the merged PR added a database migration, the local `main` checkout's database may now be behind the migration history. Mention this so the user can apply it when they next work locally (e.g. `npx prisma migrate dev`) — don't run it yourself as part of wrapup.
+   - Apply any post-merge steps the project's `docs/agents/worktrees.md` declares for `/wrapup` (e.g. regenerating a database client after a checkout switch on a test-driven branch).
 
 9. **Verify and report.**
    - Confirm the issue closed: `gh issue view <num> --json state,closed` — `Closes #<num>` should have closed it on merge. If it's still open, close it with a comment noting the merge.
