@@ -1,0 +1,5 @@
+interface:
+  display_name: "Upgrade Deps"
+  short_description: "Upgrade deps; majors gated by a six-month rule"
+policy:
+  allow_implicit_invocation: false

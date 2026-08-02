@@ -29,6 +29,7 @@
     "./skills/engineering/to-spec",
     "./skills/engineering/to-tickets",
     "./skills/engineering/wayfinder",
+    "./skills/engineering/upgrade-deps",
     "./skills/engineering/implement",
     "./skills/engineering/implement-spec",
     "./skills/engineering/prototype",
