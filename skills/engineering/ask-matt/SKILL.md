@@ -50,6 +50,7 @@ A starting situation that generates work, then merges onto the main flow.
 Not feature work — upkeep.
 
 - **`/improve-codebase-architecture`** — run whenever you have a spare moment to keep the codebase good for agents to operate in. It surfaces **deepening opportunities**; picking one _generates an idea_ you can take into the main flow at `/grill-with-docs`. It's the survey that finds the candidates; **`/codebase-design`** (below) is the bench you design the chosen one on.
+- **`/upgrade-deps`** — the same upkeep instinct pointed at the dependency tree of a pnpm project. Minor/patch bumps are applied and committed automatically; majors are assessed against a **six-month rule** (a major younger than six months is held back) and only applied with your approval, each as its own commit. A "migration" verdict on a big major can become an idea for the main flow at `/grill-with-docs`.
 
 ## Vocabulary underneath
 
