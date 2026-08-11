@@ -46,3 +46,10 @@ What goes in the block depends on the harness:
   [<tag>] <label>
   ```
   ````
+
+## Also try `pbcopy`
+
+After emitting the block, probe whether you have permission to pipe to `pbcopy` (macOS clipboard) — e.g. run it via the shell tool with the block's exact content. Don't ask the user first; just attempt it.
+
+- If the tool call succeeds, mention in a short trailing line that the line was also copied to the clipboard.
+- If it's denied (permission prompt rejected, command fails, or the tool isn't available), say nothing about it — no mention of `pbcopy`, no apology, no fallback note. Fail silently.
