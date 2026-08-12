@@ -201,6 +201,10 @@ Skills I use daily for code work.
 - **[implement](./skills/engineering/implement/SKILL.md)** — Build the work described by a spec or set of tickets, driving `/tdd` at pre-agreed seams and closing out with `/code-review` before committing.
 - **[wayfinder](./skills/engineering/wayfinder/SKILL.md)** — Plan a huge chunk of work, more than one agent session can hold, as a shared map of decision tickets on the issue tracker — resolve them one at a time until the way to the destination is clear.
 - **[upgrade-deps](./skills/engineering/upgrade-deps/SKILL.md)** — Upgrade a pnpm project's dependencies: apply and commit minor/patch bumps, then assess each major against a six-month stability rule and apply only the ones you approve.
+- **[queue](./skills/engineering/queue/SKILL.md)** — Show the ready-for-agent queue — what's available to pick up, what's already claimed, and any conflicts. Read-only.
+- **[pickup](./skills/engineering/pickup/SKILL.md)** — Pick up a ready-for-agent issue (GitHub or Linear) in an isolated worktree and take it through to an open PR. Parallel-safe: multiple pickups run without colliding.
+- **[test-drive](./skills/engineering/test-drive/SKILL.md)** — Check out a picked-up ticket's branch in the main checkout for hands-on testing, tearing down its worktree first.
+- **[wrapup](./skills/engineering/wrapup/SKILL.md)** — Finish a picked-up ticket — merge its PR once CI is green, then tear down the worktree and branch.
 
 **Model-invoked**
 
@@ -225,8 +229,12 @@ General workflow tools, not code-specific.
 - **[teach](./skills/productivity/teach/SKILL.md)** — Teach the user a new skill or concept over multiple sessions, using the current directory as a stateful teaching workspace.
 - **[to-questionnaire](./skills/productivity/to-questionnaire/SKILL.md)** — Turn a decision you can't answer alone into a Markdown questionnaire for the one person who can — filled in async, or together over a meeting. It grills you about the send (who it's for, what you need back), not the subject.
 - **[wait-what](./skills/productivity/wait-what/SKILL.md)** — Fire this the moment a message doesn't land. The agent re-pitches it with the context you're missing, in plain English, using your `CONTEXT.md` vocabulary.
+- **[edit-article](./skills/productivity/edit-article/SKILL.md)** — Edit and improve an article draft section by section: restructure to respect information dependencies, then tighten prose with your confirmation at each step.
 
 **Model-invoked**
 
 - **[grilling](./skills/productivity/grilling/SKILL.md)** — Interview the user relentlessly about a plan, decision, or idea until every branch of the design tree is resolved. The reusable interview primitive behind `grill-me`, `grill-with-docs`, `triage`, `wayfinder` and `improve-codebase-architecture`.
 - **[writing-for-agents](./skills/productivity/writing-for-agents/SKILL.md)** — Writing documents for agents: skills, AGENTS.md/CLAUDE.md, and any doc an agent reaches by a pointer.
+- **[rename-thread](./skills/productivity/rename-thread/SKILL.md)** — Emit a copy-able `/rename` block that gives the current thread a findable title, delivered in the turn's final message.
+- **[gpt-image-2](./skills/productivity/gpt-image-2/SKILL.md)** — Generate or edit images with OpenAI's gpt-image-2 via the mcp-image MCP server, filed per project as `<slug>/<prefix>-<subject>-v<NN>.png`.
+- **[obsidian-vault](./skills/productivity/obsidian-vault/SKILL.md)** — Search, create, and manage notes in the Obsidian vault with wikilinks and index notes.

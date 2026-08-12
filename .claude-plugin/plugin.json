@@ -38,12 +38,20 @@
     "./skills/engineering/code-review",
     "./skills/engineering/resolving-merge-conflicts",
     "./skills/engineering/wizard",
+    "./skills/engineering/queue",
+    "./skills/engineering/pickup",
+    "./skills/engineering/test-drive",
+    "./skills/engineering/wrapup",
     "./skills/productivity/grill-me",
     "./skills/productivity/grilling",
     "./skills/productivity/handoff",
     "./skills/productivity/teach",
     "./skills/productivity/to-questionnaire",
     "./skills/productivity/wait-what",
-    "./skills/productivity/writing-for-agents"
+    "./skills/productivity/writing-for-agents",
+    "./skills/productivity/edit-article",
+    "./skills/productivity/rename-thread",
+    "./skills/productivity/gpt-image-2",
+    "./skills/productivity/obsidian-vault"
   ]
 }
