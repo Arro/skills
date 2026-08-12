@@ -57,7 +57,7 @@ They are deliberately not the whole workflow. Reading the contract, the stacked-
 
    Then run the `/rename-thread` skill with the title `<id> <short label>` (`SUGGESTED_LABEL` is exactly this) — enough to recognise the issue at a glance in the sidebar, not just the id. The session often inherits a stale title from a prior `/queue` or unrelated turn, which is what makes this worth doing at all.
 
-   **The rename block must appear on screen before you touch step 5.** `/rename` is the user's command to run, not yours, so the skill's only deliverable is a fenced block they copy — and it is worthless if it never reaches them. Emit it as visible text in the same turn you invoke the skill, with no tool calls after it. Do not carry it forward "to include in the summary", and do not treat invoking the skill as having done the step. If you reach step 5 and the block was never printed, you have skipped a deliverable: print it before continuing.
+   **Delivery, per the skill:** `/rename` is the user's command to run, not yours, so the skill's only deliverable is a fenced block they copy — and it only reaches them in the turn's *final* message (harnesses hide text between tool calls, and stopping the turn to show it would stall the whole workflow). So settle the title now, keep working, and put the block at the **top of the step-10 report**. Invoking the skill is not the deliverable; the block appearing in that report is.
 
 5. **Create an isolated worktree.** Never work in the main checkout — other `/pickup` sessions may be using it.
 
@@ -101,8 +101,8 @@ They are deliberately not the whole workflow. Reading the contract, the stacked-
       ~/.claude/skills/pickup/scripts/stop-dev-servers.sh "$WT"
       ```
       It kills listeners on every port in the worktree's env files, but only those whose working directory is inside the worktree — an unrelated main-checkout server on the same port is reported and left alone.
+    - **Open the report with the step-4 rename block.** This final message is where the block is delivered — mid-turn text is hidden by the harness — and a thread nobody can find in the sidebar is the one deliverable that outlives the PR.
     - Output the PR URL, the worktree path (so the user knows where to clean up after merge: `git worktree remove <path>`), and the assigned `PORT`.
-    - If the rename block from step 4 never made it on screen, emit it now — a thread nobody can find in the sidebar is the one deliverable that outlives the PR.
 
     Do not merge. Do not squash, rebase, or force-push.
 
