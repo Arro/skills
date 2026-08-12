@@ -15,11 +15,16 @@ Harnesses title a thread from its first message and never revisit it, so the sid
 - If the label references a ticket, use the tracker's native format: `#37` for a GitHub issue, but a Linear identifier as-is — `ABC-123`, never `#ABC-123`.
 - In a project, prefix the session tag unless the label already starts with one: the `prefix` from the `## Project slug` block in the project's `CLAUDE.md` or `AGENTS.md`, or failing that the initials of the repo name's hyphenated words (`amber-waveform` → `aw`), as `[<tag>]`. Outside a project, no prefix.
 
-## Emit the block — as visible text, before anything else
+## Emit the block — in the turn's final message
 
-The block is the entire deliverable, and the user can only act on it if they see it. So print it as ordinary assistant text in your **very next message, before any further tool calls**.
+The block is the entire deliverable, and the user can only act on it if they see it. Where you put it decides that, and harness realities cut both ways:
 
-This holds hardest when another skill invoked this one mid-workflow (`/pickup` does, at step 4): the temptation is to treat the rename as an internal bookkeeping step and press on with the real work. Don't. Emit the block, then resume. A run where the block was skipped, deferred to a closing summary, batched behind a pile of tool calls, or replaced by a claim like "I've renamed the thread" (you cannot — `/rename` is the user's to run) is a failed run, even if everything else went well.
+- Text written between tool calls is **not reliably shown** — Claude Code's UI collapses it into a progress chip, so a block emitted mid-turn vanishes without a trace.
+- Ending the turn early just to display the block **stalls the workflow** — Codex stops the whole thread and waits on the user.
+
+So the rule is: the block goes in the **final text message of the turn**, after all tool calls — the one message every harness renders. When the user invoked this skill directly, that's simply your next message and you're done. When another skill invoked it mid-workflow (`/pickup` does, at step 4), do **not** stop the workflow and do **not** emit mid-turn: settle on the title now, carry on with the work, and open the turn's closing report with the block, above the summary.
+
+A run where the block never appears in the final message — dropped, buried mid-turn where the UI hid it, or replaced by a claim like "I've renamed the thread" (you cannot — `/rename` is the user's to run) — is a failed run, even if everything else went well.
 
 One short intro line, then the content on its **own fenced code block** (not inline `` `code` ``) so GUI clients render a copy button — and nothing else on the line inside the block, so a one-click copy yields something directly paste-able.
 
