@@ -63,6 +63,16 @@ if [ "${CODE:-1}" -ne 0 ]; then
 fi
 
 # ── Claim it ────────────────────────────────────────────────────────
+#
+# Two halves to the claim: assigning yourself (the mutex), and dropping the
+# `ready-for-agent` label so the issue leaves the queue another agent pulls
+# from. On a resumed session the label is already gone — don't try to remove
+# it twice.
+
+HAS_LABEL=0
+if printf '%s' "$ISSUE_JSON" | grep -q '"name":"ready-for-agent"'; then
+  HAS_LABEL=1
+fi
 
 if printf '%s' "$ISSUE_JSON" | grep -q "\"login\":\"$ME\""; then
   echo
@@ -74,4 +84,15 @@ else
   gh issue edit "$ID" --repo "$REPO" --add-assignee @me >/dev/null
   echo
   echo "claimed: #$ID assigned to $ME"
+fi
+
+if [ "$HAS_LABEL" -eq 1 ]; then
+  if [ "$DRY_RUN" -eq 1 ]; then
+    echo "[dry-run] would remove label 'ready-for-agent' from #$ID"
+  elif gh issue edit "$ID" --repo "$REPO" --remove-label ready-for-agent >/dev/null 2>&1; then
+    echo "label removed: 'ready-for-agent' dropped from #$ID"
+  else
+    # Not fatal — the assignee mutex is what actually stops a collision.
+    echo "warning: could not remove 'ready-for-agent' from #$ID — remove it by hand" >&2
+  fi
 fi
