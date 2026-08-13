@@ -4,7 +4,7 @@
 
 ## When to reach for it
 
-Type `/rename-thread [title]`, or the agent reaches for it when another skill needs the session renamed — [pickup](https://aihero.dev/skills-pickup) runs it on every ticket.
+Type `/rename-thread [title]`, or let the agent reach for it when another skill needs the session renamed.
 
 Reach for it whenever the sidebar name no longer says what the thread is for: months from now, the title is how you'll find this session again.
 
@@ -27,4 +27,4 @@ The one rule that matters: the block appears in the turn's final message, on its
 
 ## Where it fits
 
-A reach-for-it-anytime standalone, and the rename step inside [pickup](https://aihero.dev/skills-pickup)'s worktree loop — where the block rides at the top of the closing report. For the map over the whole set, see [ask-matt](https://aihero.dev/skills-ask-matt).
+A reach-for-it-anytime standalone, with no fixed place in any chain — reach for it at the point a thread stops being about what its title says. For the map over the whole set, see [ask-matt](https://aihero.dev/skills-ask-matt).

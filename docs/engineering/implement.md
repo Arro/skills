@@ -6,7 +6,7 @@ It never reopens the plan. There is no interview, no clarifying round, no propos
 
 ## When to reach for it
 
-Usually you invoke this by typing `/implement`. It is model-invocable, which matters in one place: [pickup](https://aihero.dev/skills-pickup) runs it as its build step, so a ticket picked up into a worktree gets built under exactly this discipline. Wherever [ask-matt](https://aihero.dev/skills-ask-matt) or [to-tickets](https://aihero.dev/skills-to-tickets) says "then `/implement` per ticket", though, that is still an instruction to you: nothing dispatches the queue on your behalf.
+Usually you invoke this by typing `/implement`. It is model-invocable, which matters in one place: `/pickup` runs it as its build step, so a ticket picked up into a worktree gets built under exactly this discipline. Wherever [ask-matt](https://aihero.dev/skills-ask-matt) or [to-tickets](https://aihero.dev/skills-to-tickets) says "then `/implement` per ticket", though, that is still an instruction to you: nothing dispatches the queue on your behalf.
 
 Where the work currently lives decides whether this is the right skill:
 
@@ -54,7 +54,7 @@ Correct, and expected. `implement` has no completion step. It ends at the commit
 
 **Can I point it at all my tickets at once, or run several in parallel?**
 
-Not with `/implement`: one invocation, one ticket. For a whole spec in one run, use [implement-spec](https://aihero.dev/skills-implement-spec), which gives each ticket on the ready frontier to a [subagent](https://www.aihero.dev/ai-coding-dictionary/subagent) in its own worktree, then merges the results onto one integration branch. Running several `/implement` sessions side by side in one checkout is worse than unsupported. One field report describes a `git commit --amend` in one session landing on another session's commit, a stash vanishing from `refs/stash`, and commits landing on the wrong branch, all in a single afternoon across three issues. The sessions share one working directory, one index, and one HEAD. Users work around this with git worktrees, but `refs/stash` is shared across worktrees too, so worktrees alone do not fix the stash case.
+Not with `/implement`: one invocation, one ticket. For a whole spec in one run, use [implement-spec](https://aihero.dev/skills-implement-spec), which gives each ticket on the ready frontier to a [subagent](https://www.aihero.dev/ai-coding-dictionary/subagent) in its own worktree, then merges the results onto one integration branch. Running several `/implement` sessions side by side in one checkout is worse than unsupported. One field report describes a `git commit --amend` in one session landing on another session's commit, a stash vanishing from `refs/stash`, and commits landing on the wrong branch, all in a single afternoon across three issues. The sessions share one working directory, one index, and one HEAD. Users work around this with git worktrees, but `refs/stash` is shared across worktrees too, so worktrees alone do not fix the stash case. For one session and one worktree per ticket instead, `/queue` and `/pickup` give you that, each running `implement` for its own build.
 
 **Can it open a pull request instead of committing?**
 
@@ -92,7 +92,7 @@ grill-with-docs → to-spec → to-tickets → implement → code-review → ret
 
 Its neighbours are [to-tickets](https://aihero.dev/skills-to-tickets), which produces the tickets it consumes and declares the blocking edges that decide their order; [tdd](https://aihero.dev/skills-tdd), which it drives internally at each seam; and [code-review](https://aihero.dev/skills-code-review), which it runs before committing. It sits downstream of the planning skills and trusts them. It does not re-validate the shape of what it was handed, so a badly-structured map or a horizontally-layered ticket gets built as written.
 
-The parallel tail of the chain reuses it rather than replacing it: [pickup](https://aihero.dev/skills-pickup) claims a ticket, sets up an isolated worktree, and then runs `implement` for the build itself. The serial and fan-out routes produce code the same way, and only the surrounding claim-worktree-PR machinery differs.
+The parallel tail of the chain reuses it rather than replacing it: `/pickup` claims a ticket, sets up an isolated worktree, and then runs `implement` for the build itself. The serial and fan-out routes produce code the same way, and only the surrounding claim-worktree-PR machinery differs.
 
 That trust is why [wayfinder](https://aihero.dev/skills-wayfinder) merges onto the chain at [to-spec](https://aihero.dev/skills-to-spec) rather than looping its map straight into `implement`. Go straight to `implement` from a map only when the effort turned out small.
 
