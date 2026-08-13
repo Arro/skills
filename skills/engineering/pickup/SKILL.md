@@ -48,16 +48,14 @@ They are deliberately not the whole workflow. Reading the contract, the stacked-
 
 3. **Claim the issue (mutex).** `claim-ticket.sh` does this too: it assigns you the issue, which is what stops two parallel `/pickup` sessions grabbing the same ticket. It continues if the issue is already yours (a resumed session) and exits 5 if it belongs to someone else — stop and ask then. For Linear, assign yourself with the update-issue MCP tool.
 
-4. **Derive a branch name, then rename the thread.**
+4. **Derive a branch name.**
 
-   `claim-ticket.sh` already printed a `SUGGESTED_BRANCH` and `SUGGESTED_LABEL`. Take them unless they read badly, in which case build your own to the same shape:
+   `claim-ticket.sh` already printed a `SUGGESTED_BRANCH`. Take it unless it reads badly, in which case build your own to the same shape:
    - `fix/<id>-<slug>` if the issue is labeled a bug, `feat/<id>-<slug>` otherwise.
    - `<id>` lowercase (e.g. `fix/123-…`, `feat/abc-123-…`). For Linear, keeping the identifier in the branch name is also what lets Linear's GitHub integration auto-link the branch and PR to the issue.
    - Slug = first 4–5 meaningful words of the title, kebab-case, lowercase.
 
-   Then run the `/rename-thread` skill with the title `<id> <short label>` (`SUGGESTED_LABEL` is exactly this) — enough to recognise the issue at a glance in the sidebar, not just the id. The session often inherits a stale title from a prior `/queue` or unrelated turn, which is what makes this worth doing at all.
-
-   **Delivery, per the skill:** `/rename` is the user's command to run, not yours, so the skill's only deliverable is a fenced block they copy — and it only reaches them in the turn's *final* message (harnesses hide text between tool calls, and stopping the turn to show it would stall the whole workflow). So settle the title now, keep working, and put the block at the **top of the step-10 report**. Invoking the skill is not the deliverable; the block appearing in that report is.
+   Don't rename the thread — the session is already titled for this ticket by the time `/pickup` runs.
 
 5. **Create an isolated worktree.** Never work in the main checkout — other `/pickup` sessions may be using it.
 
@@ -85,9 +83,11 @@ They are deliberately not the whole workflow. Reading the contract, the stacked-
 
    **Browser verification** in the worktree uses `http://localhost:$PORT` directly. A `CLAUDE.md` rule mandating a reverse-proxied hostname (e.g. `https://<app>.localhost`) describes the *main checkout* — that hostname does not route to this worktree, and following it would verify the wrong server's code.
 
-6. **Implement per the contract.** Follow the acceptance criteria literally. If anything in the contract is ambiguous, contradictory, or under-specified, **stop and ask** — do not guess and do not silently make a judgment call. Adhere to all `CLAUDE.md` conventions, and read the project's domain docs first where they exist (`CONTEXT.md`, `docs/adr/`).
+6. **Implement per the contract — run the `/implement` skill.** The contract is its spec: pass it the acceptance criteria and let it drive the build (`/tdd` at pre-agreed seams, type-checking and single test files as it goes, the full suite and a `/code-review` pass at the end). Two things override its defaults here: all work happens in the step-5 worktree, never the main checkout, and the commit is step 8 below rather than `/implement`'s own — the message needs the closing reference, so leave it uncommitted for that step.
 
-7. **Validate.** Run the project's validation for the area you changed: its `check`/`fix` scripts if it has them (e.g. `pnpm run check && pnpm run fix`), otherwise whatever `CLAUDE.md` documents as the bar (a clean type-check, a clean simulator build, …). Run any test files you added or that cover the changed code. If a check you didn't touch fails, investigate the root cause — do not delete, skip, or weaken it.
+   Follow the acceptance criteria literally. If anything in the contract is ambiguous, contradictory, or under-specified, **stop and ask** — do not guess and do not silently make a judgment call. Adhere to all `CLAUDE.md` conventions, and read the project's domain docs first where they exist (`CONTEXT.md`, `docs/adr/`).
+
+7. **Validate.** On top of what `/implement` already ran, run the project's validation for the area you changed: its `check`/`fix` scripts if it has them (e.g. `pnpm run check && pnpm run fix`), otherwise whatever `CLAUDE.md` documents as the bar (a clean type-check, a clean simulator build, …). Run any test files you added or that cover the changed code. If a check you didn't touch fails, investigate the root cause — do not delete, skip, or weaken it.
 
 8. **Commit.** Stage the files you actually changed (never `git add -A`). Keep generated artifacts that belong with the change together in the commit (e.g. a schema change and its migration folder). Conventional-style message ending with the closing reference — `Closes #<id>` for GitHub, `Closes <id>` (e.g. `Closes ABC-123`) for Linear — so the tracker auto-closes the issue on merge. One commit unless the work has natural seams.
 
@@ -101,7 +101,6 @@ They are deliberately not the whole workflow. Reading the contract, the stacked-
       ~/.claude/skills/pickup/scripts/stop-dev-servers.sh "$WT"
       ```
       It kills listeners on every port in the worktree's env files, but only those whose working directory is inside the worktree — an unrelated main-checkout server on the same port is reported and left alone.
-    - **Open the report with the step-4 rename block.** This final message is where the block is delivered — mid-turn text is hidden by the harness — and a thread nobody can find in the sidebar is the one deliverable that outlives the PR.
     - Output the PR URL, the worktree path (so the user knows where to clean up after merge: `git worktree remove <path>`), and the assigned `PORT`.
 
     Do not merge. Do not squash, rebase, or force-push.

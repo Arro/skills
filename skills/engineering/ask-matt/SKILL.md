@@ -36,7 +36,7 @@ The limit on this is the **[smart zone](https://www.aihero.dev/ai-coding-diction
 An alternative tail for the main flow. Where step 3 runs `/implement` per ticket serially in your own window, this loop **fans out**: each `ready-for-agent` ticket gets its own session and its own isolated git worktree, so several run at once without colliding, and the PRs come back to you for review.
 
 1. **`/queue`** — survey before starting: what's available to pick up, what's already claimed, which PRs await review (flagging any forbidden stacked PR), which worktrees linger. Read-only.
-2. **`/pickup <id>`** — claim one ticket (GitHub or Linear; assignment is the **mutex**), build it in a worktree with its own `PORT`, and take it through to an open PR. It stops before merge, and runs `/rename-thread` so the session is findable in the sidebar later.
+2. **`/pickup <id>`** — claim one ticket (GitHub or Linear; assignment is the **mutex**), build it in a worktree with its own `PORT`, and take it through to an open PR. It stops before merge, and runs `/implement` for the build itself — same loop as the serial flow, wrapped in a worktree and a PR.
 3. **`/test-drive <id>`** — optional: put the ticket's branch on the main checkout for hands-on testing. The worktree goes; the branch and PR stay.
 4. **`/wrapup <id>`** — after your review: merge the PR once CI is green, then tear down the worktree and branch and fast-forward `main`.
 
@@ -94,7 +94,7 @@ Off the main flow entirely.
 - **`/wait-what`** — the corrective for a message that didn't land. Use it mid-conversation, inside any other skill, and the agent re-pitches what it just said with the context you were missing, in plain English, using the `CONTEXT.md` vocabulary. It works after the fact; `/grill-with-docs` is the upfront cure, because a shared language agreed early is what stops the jargon arriving at all.
 - **`/teach`** — learn a concept over multiple sessions, using the current directory as a stateful workspace.
 - **`/writing-for-agents`** — reference for writing documents agents consume: skills, AGENTS.md, pointed-at docs.
-- **`/rename-thread`** — give the current thread a findable title. The agent can't run `/rename` itself, so the deliverable is a copy-able block in the turn's final message. Reach for it when the sidebar name no longer says what the thread became; `/pickup` runs it on every ticket.
+- **`/rename-thread`** — give the current thread a findable title. The agent can't run `/rename` itself, so the deliverable is a copy-able block in the turn's final message. Reach for it when the sidebar name no longer says what the thread became.
 - **`/gpt-image-2`** — when the deliverable is an image file: generate, edit, or blend with OpenAI's gpt-image-2 through the `mcp-image` MCP server, filed per project by slug and prefix. One image per call, then wait for the verdict — every call costs money.
 - **`/obsidian-vault`** — search, create, and organize notes in the Obsidian vault: wikilinks, index notes, Title Case, links over folders.
 - **`/edit-article`** — improve an article draft: restructure sections so information dependencies read in order, then tighten prose section by section, confirming each with you.
