@@ -1,0 +1,5 @@
+interface:
+  display_name: "Grab"
+  short_description: "Take a ticket to an open PR in the current checkout"
+policy:
+  allow_implicit_invocation: false
