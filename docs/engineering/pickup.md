@@ -1,6 +1,6 @@
 ## What it does
 
-`pickup` takes one ready-for-agent ticket end-to-end: it claims the issue, builds the work in an isolated git worktree, and opens a PR. It stops before merge — the PR comes back to you for review, and merging belongs to [wrapup](https://aihero.dev/skills-wrapup). It is designed for fan-out: assignment on the tracker is the mutex, so several `/pickup` sessions run in parallel without claiming the same ticket or colliding on ports.
+`pickup` takes one ready-for-agent ticket end-to-end: it claims the issue, builds the work in an isolated git worktree, and opens a PR. It stops before merge — the PR comes back to you for review, and merging belongs to `/wrapup`. It is designed for fan-out: assignment on the tracker is the mutex, so several `/pickup` sessions run in parallel without claiming the same ticket or colliding on ports.
 
 Tickets can live on GitHub or Linear; the skill detects which from the argument (`123` or a `github.com` URL vs `ABC-123` or a `linear.app` URL).
 
@@ -36,4 +36,4 @@ Two guardrails do the most work:
 
 ## Where it fits
 
-A chain step in the worktree loop — `/queue` → `/pickup` → (`/test-drive`) → `/wrapup` — which is the parallel alternative to running `/implement` yourself at the tail of the main flow — it wraps that same skill in a worktree and a PR — picking up what `/to-issues` or `/triage` produced. `/queue` shows you what's available before you commit to one, because it reads the same labels this skill claims. For the map over the whole set, see `/ask-matt`.
+A chain step in the worktree loop — `/queue` → `/pickup` → (`/test-drive`) → `/wrapup`. It's the parallel alternative to running [implement](https://aihero.dev/skills-implement) yourself at the tail of the main flow, wrapping that same skill in a worktree and a PR. It claims anything carrying the `ready-for-agent` label, which reaches the queue by two routes: [to-tickets](https://aihero.dev/skills-to-tickets) applies it to the tickets it publishes, and [triage](https://aihero.dev/skills-triage) moves an inbound issue into that state. `/queue` shows you what's available before you commit to one, because it reads the same label this skill claims. For the map over the whole set, see [ask-matt](https://aihero.dev/skills-ask-matt).

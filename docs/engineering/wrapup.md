@@ -6,7 +6,7 @@
 
 You invoke this by typing `/wrapup <id>` — the [agent](https://www.aihero.dev/ai-coding-dictionary/agent) won't reach for it on its own.
 
-Reach for it from the main checkout, once you're happy with the PR. Don't reach for it to *decide* whether you're happy — that's your review, or a [test-drive](https://aihero.dev/skills-test-drive) first.
+Reach for it from the main checkout, once you're happy with the PR. Don't reach for it to *decide* whether you're happy — that's your review, or a `/test-drive` first.
 
 ## Prerequisites
 
@@ -32,4 +32,4 @@ The teardown is thorough on purpose: squash-merge (one commit per ticket, so `Cl
 
 ## Where it fits
 
-The final step of the worktree loop — `/queue` → `/pickup` → (`/test-drive`) → **`/wrapup`**. It is the merge that [pickup](https://aihero.dev/skills-pickup) deliberately stops short of, and it knows how to clean up after a [test-drive](https://aihero.dev/skills-test-drive) collapsed the worktree early. For the map over the whole set, see [ask-matt](https://aihero.dev/skills-ask-matt).
+The final step of the worktree loop — `/queue` → `/pickup` → (`/test-drive`) → **`/wrapup`**. It is the merge that `/pickup` deliberately stops short of, and it knows how to clean up after a `/test-drive` collapsed the worktree early. For the map over the whole set, see [ask-matt](https://aihero.dev/skills-ask-matt).

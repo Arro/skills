@@ -10,8 +10,8 @@ Reach for it at the top of a working session, before a `/pickup`, or whenever yo
 
 | It shows | You act with |
 | --- | --- |
-| An available ticket | [pickup](https://aihero.dev/skills-pickup) |
-| A PR awaiting review | review it, then [wrapup](https://aihero.dev/skills-wrapup) |
+| An available ticket | `/pickup` |
+| A PR awaiting review | review it, then `/wrapup` |
 | A stale worktree | `git worktree remove <path>` |
 
 ## Prerequisites
@@ -32,4 +32,4 @@ Beyond the four lists, two callouts matter:
 
 ## Where it fits
 
-The survey step of the worktree loop — `/queue` → `/pickup` → (`/test-drive`) → `/wrapup`. It reads the same `ready-for-agent` label that [triage](https://aihero.dev/skills-triage) applies and [pickup](https://aihero.dev/skills-pickup) claims. For the map over the whole set, see [ask-matt](https://aihero.dev/skills-ask-matt).
+The survey step of the worktree loop — `/queue` → `/pickup` → (`/test-drive`) → `/wrapup`. It reads the same `ready-for-agent` label that [triage](https://aihero.dev/skills-triage) applies and `/pickup` claims. For the map over the whole set, see [ask-matt](https://aihero.dev/skills-ask-matt).

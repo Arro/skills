@@ -6,7 +6,7 @@
 
 You invoke this by typing `/test-drive <id>` — the [agent](https://www.aihero.dev/ai-coding-dictionary/agent) won't reach for it on its own.
 
-Reach for it between `/pickup` and `/wrapup`, when reading the PR isn't enough and you want to run the thing — click through the UI, poke the endpoint — from your normal working directory with your normal dev setup. If the PR reads fine as a diff, skip straight to [wrapup](https://aihero.dev/skills-wrapup).
+Reach for it between `/pickup` and `/wrapup`, when reading the PR isn't enough and you want to run the thing — click through the UI, poke the endpoint — from your normal working directory with your normal dev setup. If the PR reads fine as a diff, skip straight to `/wrapup`.
 
 ## What it protects
 
@@ -28,4 +28,4 @@ It also stops the worktree's dev servers before removal — only processes actua
 
 ## Where it fits
 
-The optional step in the worktree loop — `/queue` → `/pickup` → **`/test-drive`** → `/wrapup` — for the tickets you want to try before you merge. [pickup](https://aihero.dev/skills-pickup) creates what it collapses; [wrapup](https://aihero.dev/skills-wrapup) handles the aftermath either way. For the map over the whole set, see [ask-matt](https://aihero.dev/skills-ask-matt).
+The optional step in the worktree loop — `/queue` → `/pickup` → **`/test-drive`** → `/wrapup` — for the tickets you want to try before you merge. `/pickup` creates what it collapses; `/wrapup` handles the aftermath either way. For the map over the whole set, see [ask-matt](https://aihero.dev/skills-ask-matt).
