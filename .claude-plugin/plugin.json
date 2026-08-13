@@ -40,6 +40,7 @@
     "./skills/engineering/wizard",
     "./skills/engineering/queue",
     "./skills/engineering/pickup",
+    "./skills/engineering/grab",
     "./skills/engineering/test-drive",
     "./skills/engineering/wrapup",
     "./skills/productivity/grill-me",

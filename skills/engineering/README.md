@@ -17,6 +17,7 @@ Reachable only when you type them (Claude Code: `disable-model-invocation: true`
 - **[upgrade-deps](./upgrade-deps/SKILL.md)** — Upgrade a pnpm project's dependencies: apply and commit minor/patch bumps, then assess each major against a six-month stability rule and apply only the ones you approve.
 - **[queue](./queue/SKILL.md)** — Show the ready-for-agent queue — what's available to pick up, what's already claimed, and any conflicts. Read-only.
 - **[pickup](./pickup/SKILL.md)** — Pick up a ready-for-agent issue (GitHub or Linear) in an isolated worktree and take it through to an open PR.
+- **[grab](./grab/SKILL.md)** — Pull down a ticket (GitHub or Linear) and take it to an open PR in the current checkout — branch, changes, commit, push, PR. The light, in-place sibling of `pickup`.
 - **[test-drive](./test-drive/SKILL.md)** — Check out a picked-up ticket's branch in the main checkout for hands-on testing, tearing down its worktree first.
 - **[wrapup](./wrapup/SKILL.md)** — Finish a picked-up ticket — merge its PR once CI is green, then tear down the worktree and branch.
 

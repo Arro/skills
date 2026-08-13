@@ -40,6 +40,8 @@ An alternative tail for the main flow. Where step 3 runs `/implement` per ticket
 3. **`/test-drive <id>`** — optional: put the ticket's branch on the main checkout for hands-on testing. The worktree goes; the branch and PR stay.
 4. **`/wrapup <id>`** — after your review: merge the PR once CI is green, then tear down the worktree and branch and fast-forward `main`.
 
+For **one ticket you'd rather run in place**, skip the loop and use **`/grab <id>`** — the light sibling of `/pickup`: no queue, no claim, no worktree, no port. It pulls the ticket down (GitHub or Linear), branches off `main` in the current checkout, makes the changes, and takes them to an open PR. Reach for it when the ticket is small and nothing else is running; the moment you want tickets in parallel, it's `/pickup`.
+
 ## On-ramps
 
 A starting situation that generates work, then merges onto the main flow.
