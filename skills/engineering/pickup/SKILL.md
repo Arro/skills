@@ -24,7 +24,7 @@ The mechanical parts of setup and teardown are scripted, in `~/.claude/skills/pi
 
 | Script | Does | Refuses when |
 | --- | --- | --- |
-| `claim-ticket.sh <id> [--repo o/n] [--dry-run]` | Steps 1–3 in one call: fetches the issue, gates on state and label, claims it, prints the contract plus a suggested branch and thread label | Issue is not OPEN (3), lacks `ready-for-agent` (4), or belongs to someone else (5) |
+| `claim-ticket.sh <id> [--repo o/n] [--dry-run]` | Steps 1–3 in one call: fetches the issue, gates on state and label, claims it (assign + drop the `ready-for-agent` label), prints the contract plus a suggested branch and thread label | Issue is not OPEN (3), lacks `ready-for-agent` (4), or belongs to someone else (5) |
 | `setup-worktree.sh <id> <branch> [--no-install] [--skip-port-guard]` | Step 5's mechanics: worktree off `origin/main`, gitignored container, copied `.env*`, collision-free `PORT` (plus any secondary ports), dependencies installed | The worktree or branch already exists (3), or the dev script would silently ignore `PORT` (4) — creating nothing in either case |
 | `stop-dev-servers.sh <worktree-path>` | Step 10's shutdown: kills listeners on the worktree's ports whose working directory is inside it | Never kills a process from outside the worktree — it says so and moves on |
 
@@ -38,7 +38,7 @@ They are deliberately not the whole workflow. Reading the contract, the stacked-
    ~/.claude/skills/pickup/scripts/claim-ticket.sh <id>
    ```
 
-   It prints the issue header, the contract and suggested names, then assigns the issue to you. Any non-zero exit is a stop-and-ask. Read the contract in full before going on — a `## Blocked by` section naming unmerged issues is a sequencing problem to surface, not to work around.
+   It prints the issue header, the contract and suggested names, then assigns the issue to you and removes its `ready-for-agent` label. Any non-zero exit is a stop-and-ask. Read the contract in full before going on — a `## Blocked by` section naming unmerged issues is a sequencing problem to surface, not to work around.
 
    For Linear, fetch the issue with comments via the Linear MCP tools instead.
 
@@ -46,7 +46,13 @@ They are deliberately not the whole workflow. Reading the contract, the stacked-
 
 2. **Check the label (GitHub only).** `claim-ticket.sh` enforces this — it exits 4 when `ready-for-agent` is missing, and 3 when the issue isn't OPEN. Either way, stop and ask. Linear issues have no label gate.
 
-3. **Claim the issue (mutex).** `claim-ticket.sh` does this too: it assigns you the issue, which is what stops two parallel `/pickup` sessions grabbing the same ticket. It continues if the issue is already yours (a resumed session) and exits 5 if it belongs to someone else — stop and ask then. For Linear, assign yourself with the update-issue MCP tool.
+3. **Claim the issue (mutex) and take it out of the queue.** `claim-ticket.sh` does this too, in two halves:
+   - **Assign yourself** — this is what stops two parallel `/pickup` sessions grabbing the same ticket. It continues if the issue is already yours (a resumed session) and exits 5 if it belongs to someone else — stop and ask then.
+   - **Remove the `ready-for-agent` label** — so the issue drops out of the queue other agents pull from. The script skips this on a resumed session (the label is already gone) and warns rather than failing if the removal doesn't stick; if you see that warning, remove the label yourself with `gh issue edit <id> --remove-label ready-for-agent` before going on.
+
+   If you bail out before opening the PR and the ticket goes back on the pile, re-add the label so it's pickable again.
+
+   For Linear, assign yourself with the update-issue MCP tool; there's no label to remove.
 
 4. **Derive a branch name.**
 

@@ -1,6 +1,6 @@
 ## What it does
 
-`pickup` takes one ready-for-agent ticket end-to-end: it claims the issue, builds the work in an isolated git worktree, and opens a PR. It stops before merge — the PR comes back to you for review, and merging belongs to `/wrapup`. It is designed for fan-out: assignment on the tracker is the mutex, so several `/pickup` sessions run in parallel without claiming the same ticket or colliding on ports.
+`pickup` takes one ready-for-agent ticket end-to-end: it claims the issue, builds the work in an isolated git worktree, and opens a PR. It stops before merge — the PR comes back to you for review, and merging belongs to `/wrapup`. It is designed for fan-out: assignment on the tracker is the mutex, so several `/pickup` sessions run in parallel without claiming the same ticket or colliding on ports. Claiming a GitHub issue also strips its `ready-for-agent` label, so the ticket leaves the queue the moment someone starts on it.
 
 Tickets can live on GitHub or Linear; the skill detects which from the argument (`123` or a `github.com` URL vs `ABC-123` or a `linear.app` URL).
 
