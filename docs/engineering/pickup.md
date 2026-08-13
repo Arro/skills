@@ -4,6 +4,8 @@
 
 Tickets can live on GitHub or Linear; the skill detects which from the argument (`123` or a `github.com` URL vs `ABC-123` or a `linear.app` URL).
 
+The build itself is not `pickup`'s own invention: once the worktree exists, it runs [implement](https://aihero.dev/skills-implement) against the ticket's contract, so the code gets written under the same discipline as the serial flow — [tdd](https://aihero.dev/skills-tdd) at pre-agreed seams, typechecks along the way, [code-review](https://aihero.dev/skills-code-review) at the end. `pickup` supplies what `implement` doesn't: the claim, the worktree, the commit message that closes the ticket, and the PR.
+
 ## When to reach for it
 
 You invoke this by typing `/pickup <id>` — the [agent](https://www.aihero.dev/ai-coding-dictionary/agent) won't reach for it on its own.
@@ -23,15 +25,15 @@ All work happens in `$MAIN/.worktrees/<id>` — never the main checkout, which o
 Two guardrails do the most work:
 
 - **Never a stacked PR.** The branch point is always `origin/main` and the PR base is always `main`. A ticket that asks for anything else is a sequencing problem to surface, not an instruction to follow.
-- **Never merge.** The run ends at an open PR, a stopped dev server, and a report carrying the PR URL, the worktree path, the assigned port — and the thread-rename block from [rename-thread](https://aihero.dev/skills-rename-thread), so the session stays findable in the sidebar.
+- **Never merge.** The run ends at an open PR, a stopped dev server, and a report carrying the PR URL, the worktree path, and the assigned port.
 
 ## It's working if
 
 - Several tickets progress at once, and no two sessions ever grab the same issue.
 - Every run ends at an open PR against `main` — never a merge, never a stacked base.
-- The final report gives you a PR URL, a worktree path, a port, and a copy-able rename block.
+- The final report gives you a PR URL, a worktree path, and a port.
 - A ticket that depends on unmerged code gets surfaced back to you instead of built anyway.
 
 ## Where it fits
 
-A chain step in the worktree loop — `/queue` → `/pickup` → (`/test-drive`) → `/wrapup` — which is the parallel alternative to `/implement` at the tail of the main flow, picking up what [to-tickets](https://aihero.dev/skills-to-tickets) produced. [queue](https://aihero.dev/skills-queue) shows you what's available before you commit to one, because it reads the same labels this skill claims. For the map over the whole set, see [ask-matt](https://aihero.dev/skills-ask-matt).
+A chain step in the worktree loop — `/queue` → `/pickup` → (`/test-drive`) → `/wrapup` — which is the parallel alternative to running `/implement` yourself at the tail of the main flow — it wraps that same skill in a worktree and a PR — picking up what `/to-issues` or `/triage` produced. `/queue` shows you what's available before you commit to one, because it reads the same labels this skill claims. For the map over the whole set, see `/ask-matt`.
