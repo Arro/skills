@@ -9,7 +9,7 @@ disable-model-invocation: true
 
 Given an issue or PR number (or the current branch's PR if none was given), loop with the PR's automated reviewer: read the bot's latest **pass**, fix every callout you agree with, push, wait for the bot to re-review, repeat. The loop converges when a fresh pass raises nothing new you agree with — every remaining flag sits in the **ledger** as a reasoned disagreement.
 
-**Authorization.** Invoking `/review-loop` authorizes the commits and plain pushes to the PR's branch that the loop entails, plus one comment at the end: the exit report posted on the issue. That is the direct, intended effect of the command. It authorizes nothing beyond that: no force pushes, no merging, no replying in the bot's review threads.
+**Authorization.** Invoking `/review-loop` authorizes the commits and plain pushes to the PR's branch that the loop entails, plus the comments the loop posts: a justification in the thread of each disagreed callout, and the exit report on the issue. That is the direct, intended effect of the command. It authorizes nothing beyond that: no force pushes, no merging, no resolving threads, no approving or requesting changes.
 
 ## Locate the PR
 
@@ -36,6 +36,8 @@ The **ledger** is the loop's memory: every callout the bot has ever raised, each
 - **Disagree** when it is out of scope for this PR, contradicts the repo's own conventions, is factually wrong, or is taste with no rule behind it. A disagreement needs a stated reason — "seems fine as is" is not one.
 - A re-raised callout keeps its ledger verdict unless the bot brings genuinely new information. The ledger exists so nothing gets re-litigated.
 
+**Answer each disagreement where the bot will read it.** The moment a callout earns its disagree, reply in that callout's thread with the justification (inline comments: `gh api repos/{owner}/{repo}/pulls/<pr>/comments -f body='…' -F in_reply_to=<comment-id>`; top-level findings: `gh pr comment <pr>`). The bot's next pass reads the reply — that, not silence, is what stops the re-flagging. One reply per callout: a re-raised callout already has its answer; reply again only when responding to genuinely new information.
+
 ## Fix, verify, push
 
 1. Fix every callout marked agree; flip each to fixed in the ledger.
@@ -60,10 +62,10 @@ The loop is done when a fresh pass contains nothing that earns an agree — ever
 - which model ran the loop — name yourself, e.g. "Loop run by <model>";
 - iterations run;
 - each commit pushed and which callouts it fixed;
-- the ledger's disagreements verbatim, so the user can answer the bot's threads themselves.
+- the ledger's disagreements verbatim, each linking the reply already posted in its thread, so the user can audit or override the verdicts.
 
 ## Guardrails
 
 - Plain pushes to the PR branch only — no force pushes, no merging, no branch surgery.
-- The human owns the review conversation: never reply in the bot's threads, resolve them, approve, or request changes. The exit report comment is the only comment this skill posts.
+- The loop posts exactly two kinds of comment: a disagreement justification in a callout's thread, and the exit report. The verdict on the PR stays human: never resolve threads, approve, request changes, or merge.
 - Stop and ask rather than guess when the PR is ambiguous or the working tree holds unrelated changes.
