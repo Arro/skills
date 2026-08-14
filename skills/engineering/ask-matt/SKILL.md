@@ -37,7 +37,7 @@ An alternative tail for the main flow. Where step 3 runs `/implement` per ticket
 
 1. **`/queue`** — survey before starting: what's available to pick up, what's already claimed, which PRs await review (flagging any forbidden stacked PR), which worktrees linger. Read-only.
 2. **`/pickup <id>`** — claim one ticket (GitHub or Linear; assignment is the **mutex**), build it in a worktree with its own `PORT`, and take it through to an open PR. It stops before merge, and runs `/implement` for the build itself — same loop as the serial flow, wrapped in a worktree and a PR.
-3. **`/review-loop <id>`** — optional, when a reviewer bot watches the repo's PRs: converge the open PR with it. Fix the bot callouts you agree with, push, wait for the re-review, repeat — until every remaining flag is a reasoned disagreement in the **ledger**, posted back to the issue as the exit report. Works on any open PR, so it serves `/grab` too.
+3. **`/review-loop <id>`** — optional, when a reviewer bot watches the repo's PRs: converge the open PR with it. Fix the bot callouts you agree with, push, wait for the re-review, repeat — until every remaining flag is a reasoned disagreement in the **ledger** — each answered in its PR thread so the bot's next pass reads it — with the ledger posted back to the issue as the exit report. Works on any open PR, so it serves `/grab` too.
 4. **`/test-drive <id>`** — optional: put the ticket's branch on the main checkout for hands-on testing. The worktree goes; the branch and PR stay.
 5. **`/wrapup <id>`** — after your review: merge the PR once CI is green, then tear down the worktree and branch and fast-forward `main`.
 

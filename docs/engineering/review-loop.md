@@ -18,12 +18,14 @@ A **pass** is one review round from the bot, and it's wider than "new comments":
 
 The **ledger** is the loop's memory: every callout the bot has ever raised, marked agree, disagree, or fixed, each with a one-line reason. Agreement is earned — a real bug, a spec mismatch, a breach of the repo's own standards; taste with no rule behind it is a disagreement with the reason written down. A re-raised callout keeps its verdict unless the bot brings genuinely new information, so nothing gets re-litigated pass after pass.
 
-Convergence is judgment-shaped: the loop is done when everything still flagged sits in the ledger as a reasoned disagreement. It also gives up honestly — after five iterations (that's ping-pong; a human should look) or thirty minutes with no fresh pass. Either way the run ends with an exit report — commits pushed, the ledger verbatim, and which model ran the loop — posted as a comment on the issue as well as delivered in chat. Answering the bot's review threads stays your job: the skill pushes commits and posts that one report, nothing else.
+A disagreement doesn't stay private: the moment a callout earns its verdict, the loop replies in that callout's thread with the justification, so the bot's next pass reads it — that, not silence, is what stops the re-flagging. One reply per callout; a re-raised callout already has its answer.
+
+Convergence is judgment-shaped: the loop is done when everything still flagged sits in the ledger as a reasoned disagreement. It also gives up honestly — after five iterations (that's ping-pong; a human should look) or thirty minutes with no fresh pass. Either way the run ends with an exit report — commits pushed, the ledger verbatim with links to the in-thread replies, and which model ran the loop — posted as a comment on the issue as well as delivered in chat. The verdict on the PR stays yours: the loop never resolves threads, approves, or merges.
 
 ## It's working if
 
 - Every commit the loop pushes names the callouts it addresses, and the repo's checks were green before each push.
-- Disagreements arrive with reasons, and the same disagreement is never argued twice across passes.
+- Every disagreement gets one in-thread reply carrying its reason, and the same disagreement is never argued twice across passes.
 - The issue carries an exit-report comment naming the model, the commits, and the remaining disagreements.
 - The loop stops itself — converged, quiet for thirty minutes, or five iterations — rather than spinning.
 
