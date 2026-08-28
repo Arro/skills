@@ -1,0 +1,5 @@
+interface:
+  display_name: "Content Inventory"
+  short_description: "List what a page must contain, design stripped"
+policy:
+  allow_implicit_invocation: false

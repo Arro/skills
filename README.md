@@ -206,6 +206,7 @@ Skills I use daily for code work.
 - **[review-loop](./skills/engineering/review-loop/SKILL.md)** — Converge an open PR with its reviewer bot: fix the callouts you agree with, push, wait for re-review, repeat until only reasoned disagreements remain — each answered in its PR thread, with the ledger posted as a report on the issue.
 - **[test-drive](./skills/engineering/test-drive/SKILL.md)** — Check out a picked-up ticket's branch in the main checkout for hands-on testing, tearing down its worktree first.
 - **[wrapup](./skills/engineering/wrapup/SKILL.md)** — Finish a picked-up ticket — merge its PR once CI is green, then tear down the worktree and branch.
+- **[content-inventory](./skills/engineering/content-inventory/SKILL.md)** — List everything a page or component must contain — data, actions, inputs, states — with every design decision stripped out, so a redesign can start from first principles instead of inheriting the current UI.
 
 **Model-invoked**
 
