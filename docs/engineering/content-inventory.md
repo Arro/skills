@@ -26,6 +26,16 @@ Design hides in more places than colors and coordinates, so the skill translates
 
 What does survive are the **non-design constraints** — invariants any design must honour: which action applies to which data, what requires confirmation, what only some users see.
 
+## Standing instructions
+
+Preferences you'd otherwise retype every run can live in an optional `.content-inventory.md` at the repo root; the skill checks for it on every invocation. Put there whatever should hold for the whole repo:
+
+- A folder to write each finished inventory into (each lands as `<scope-slug>.md`), alongside the paste-able block in chat.
+- Shared chrome to always leave out — a global nav or footer that's owned elsewhere and not part of any one page's redesign.
+- Extra groups to always capture — analytics events, microcopy, accessibility text.
+
+It steers scope and delivery only: an instruction to keep the current layout or styling contradicts the skill's whole point, so the skill sets it aside and tells you.
+
 ## It's working if
 
 - You could not sketch the current page from the inventory — it says what exists, and the old layout is unrecoverable from it.
