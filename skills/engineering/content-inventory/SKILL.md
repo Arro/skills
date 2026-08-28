@@ -9,6 +9,10 @@ disable-model-invocation: true
 
 Produce a **content inventory** for one scope — a page, component, route, or flow: the complete list of what it must contain, carrying nothing about how any of it currently looks or where anything sits. A redesign fed the existing UI inherits its accumulated choices; the inventory is the escape hatch — taken into a fresh design session, it lets the design start from first principles.
 
+## Standing instructions
+
+Check the repo root for `.content-inventory.md`. When present, read it and follow it — it carries the user's standing instructions for this skill in this repo. Typical contents: a folder to write each finished inventory into, shared chrome to always leave out (a global nav or footer owned elsewhere), extra groups to always capture (analytics events, microcopy, accessibility text). It steers scope and delivery only — an instruction to keep layout, widget names, or styling contradicts the point of the skill; set it aside and say so in the final message.
+
 ## Resolve the scope
 
 The argument names the scope. Find it in the codebase and trace everything it owns: child components, conditional branches, the data it fetches or receives. Given no argument, or a name matching more than one thing, ask which.
@@ -45,3 +49,5 @@ The final message carries the inventory as one fenced markdown block, ready to p
 > Content inventory for <scope>. Everything listed must be present in the design. Nothing here specifies arrangement, hierarchy, or styling — decide those from first principles.
 
 Then the six groups (omitting any empty one) and the non-design constraints.
+
+When `.content-inventory.md` names a destination folder, also write the block there as `<scope-slug>.md` (creating the folder if needed) and say where it landed.
