@@ -31,7 +31,7 @@ Call the ticket's reference `<id>` below: the issue number for GitHub, the ident
 
    Branch name: `fix/<id>-<slug>` if the ticket is a bug, `feat/<id>-<slug>` otherwise — `<id>` lowercase, slug the first 4–5 meaningful words of the title in kebab-case. For Linear, keeping the identifier in the branch name is what lets Linear's GitHub integration auto-link the branch and PR to the issue. If the repo's default branch isn't `main`, substitute it throughout.
 
-3. **Make the changes.** Follow the ticket literally, adhere to `CLAUDE.md` conventions, and read the project's domain docs first where they exist (`CONTEXT.md`, `docs/adr/`). Stay in scope — an out-of-scope cleanup becomes a follow-up issue, not part of this branch.
+3. **Make the changes.** Follow the ticket literally, adhere to `CLAUDE.md` conventions, and read the project's domain docs first where they exist (`GLOSSARY.md`, `docs/adr/`). Stay in scope — an out-of-scope cleanup becomes a follow-up issue, not part of this branch.
 
 4. **Validate.** Run the project's validation for the area you changed: its `check`/`fix` scripts if it has them, otherwise whatever `CLAUDE.md` documents as the bar. Run any test files you added or that cover the changed code. If a check you didn't touch fails, investigate the root cause — never delete, skip, or weaken it.
 

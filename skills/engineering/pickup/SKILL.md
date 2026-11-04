@@ -91,7 +91,7 @@ They are deliberately not the whole workflow. Reading the contract, the stacked-
 
 6. **Implement per the contract — run the `/implement` skill.** The contract is its spec: pass it the acceptance criteria and let it drive the build (`/tdd` at pre-agreed seams, type-checking and single test files as it goes, the full suite and a `/code-review` pass at the end). Two things override its defaults here: all work happens in the step-5 worktree, never the main checkout, and the commit is step 8 below rather than `/implement`'s own — the message needs the closing reference, so leave it uncommitted for that step.
 
-   Follow the acceptance criteria literally. If anything in the contract is ambiguous, contradictory, or under-specified, **stop and ask** — do not guess and do not silently make a judgment call. Adhere to all `CLAUDE.md` conventions, and read the project's domain docs first where they exist (`CONTEXT.md`, `docs/adr/`).
+   Follow the acceptance criteria literally. If anything in the contract is ambiguous, contradictory, or under-specified, **stop and ask** — do not guess and do not silently make a judgment call. Adhere to all `CLAUDE.md` conventions, and read the project's domain docs first where they exist (`GLOSSARY.md`, `docs/adr/`).
 
 7. **Validate.** On top of what `/implement` already ran, run the project's validation for the area you changed: its `check`/`fix` scripts if it has them (e.g. `pnpm run check && pnpm run fix`), otherwise whatever `CLAUDE.md` documents as the bar (a clean type-check, a clean simulator build, …). Run any test files you added or that cover the changed code. If a check you didn't touch fails, investigate the root cause — do not delete, skip, or weaken it.
 
