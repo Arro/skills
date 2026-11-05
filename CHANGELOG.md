@@ -1,5 +1,27 @@
 # mattpocock-skills
 
+## 1.4.0
+
+### Minor Changes
+
+- [`13cedf2`](https://github.com/mattpocock/skills/commit/13cedf2c2860af7ebd8ff9fc62ab6659ae209ba4) Thanks [@Arro](https://github.com/Arro)! - Add **`content-inventory`**: escape accumulated design when redesigning a page. Given a scope (page, component, route, or flow), it traces the code and produces the complete list of what must be there — data, actions, inputs, states, navigation, feedback, plus the non-design invariants — with every design decision stripped: no widget names, positions, colors, sizes, or even on-screen order (items are alphabetised within groups). The result is one paste-able markdown block for a fresh design session, so the new design starts from first principles instead of inheriting the old UI's choices. Ships promoted in `engineering/` with a docs page and an `ask-matt` route pairing it with `/prototype`.
+
+- [`3d26929`](https://github.com/mattpocock/skills/commit/3d26929a22386535f825b1d6623466d1fa6ab073) Thanks [@Arro](https://github.com/Arro)! - Add **`grab`**, the light, in-place sibling of `pickup`: pull down a ticket (GitHub or Linear), branch off `main` in the current checkout, make the changes, then commit, push, and open a PR — no label gate, no claiming, no worktree, no port assignment. Ships promoted in `engineering/` with a docs page and an `ask-matt` route contrasting it with the worktree loop.
+
+- [`6df85a5`](https://github.com/mattpocock/skills/commit/6df85a55505fbe277f6d8ddd6f583999fe09eea0) Thanks [@Arro](https://github.com/Arro)! - Promote the former `personal/` bucket into the standard buckets: the worktree ticket loop (`queue`, `pickup`, `test-drive`, `wrapup`) into `engineering/`, and `gpt-image-2`, `obsidian-vault`, `edit-article` into `productivity/`. All seven now ship in the plugin, carry docs pages, and are routed by `ask-matt`; the `personal/` bucket is gone.
+
+### Patch Changes
+
+- [#1363](https://github.com/mattpocock/skills/pull/1363) [`5ae4816`](https://github.com/mattpocock/skills/commit/5ae481693d13b37d4d2c2c92d0b66d299c93e695) Thanks [@mattpocock](https://github.com/mattpocock)! - `chief-of-staff` now looks for a shared wiki before starting its own. It also runs `retro` on about one in five of its subagents' sessions, the ones where something went wrong first, and acts on the findings itself, and runs `to-spec`, `to-tickets` and `implement-spec` for large chunks of work, reading each skill by relative path so they can stay user-invoked.
+
+- [`e9b98f9`](https://github.com/mattpocock/skills/commit/e9b98f9de9f2ece2a6c23fe8f5db8aae56ebffac) Thanks [@Arro](https://github.com/Arro)! - `content-inventory`: check the repo root for an optional `.content-inventory.md` of standing instructions — a folder to write each finished inventory into (as `<scope-slug>.md`), shared chrome to always exclude, extra groups to always capture. It steers scope and delivery only; an instruction to keep layout or styling is set aside and flagged.
+
+- [#1342](https://github.com/mattpocock/skills/pull/1342) [`a496f55`](https://github.com/mattpocock/skills/commit/a496f5513d4a4cf889bc48e189e579f4b0bdf6aa) Thanks [@mattpocock](https://github.com/mattpocock)! - `implement-spec` now uses a fresh implementer subagent for each ticket and for the code-review fixes, instead of reusing an earlier implementer.
+
+- [`c541fdf`](https://github.com/mattpocock/skills/commit/c541fdfb28e4895ba4ee2ae6d1366c32bc78e1fb) Thanks [@Arro](https://github.com/Arro)! - Drop thread renaming from the skills: harness sidebars now filter well enough that a hand-written thread title no longer pays for itself. `rename-thread` is removed (it was never released as a promoted skill), `pickup` no longer prints a suggested thread label or mentions renaming, and `setup-matt-pocock-skills` no longer asks for a project slug and prefix. `gpt-image-2` still asks for that `## Project slug` block itself when a project lacks one, and `pickup`'s port hashing falls back to the repo's directory name.
+
+- [#1316](https://github.com/mattpocock/skills/pull/1316) [`4ae2317`](https://github.com/mattpocock/skills/commit/4ae2317ddb22b046e26455e4f9c9b3aaaf62212d) Thanks [@mattpocock](https://github.com/mattpocock)! - Add `software-factory`, an in-progress user-invoked reference skill: a glossary for designing a software factory (tasks, runs, runners, triggers, and the services they plug into), example tasks grouped by the problem they solve, surveys of the products that fill each slot (ticket trackers, git hosts, runners, observability platforms), and the questions that finish a design. Call it alongside a grilling session.
+
 ## 1.3.2
 
 ### Patch Changes
