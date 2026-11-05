@@ -19,6 +19,5 @@ Model- or user-reachable (rich trigger phrasing so the model can reach for them)
 
 - **[grilling](./grilling/SKILL.md)**: Interview the user relentlessly about a plan, decision, or idea until every branch of the design tree is resolved.
 - **[writing-for-agents](./writing-for-agents/SKILL.md)**: Writing documents for agents: skills, AGENTS.md/CLAUDE.md, and any doc an agent reaches by a pointer.
-- **[rename-thread](./rename-thread/SKILL.md)**: Emit a copy-able `/rename` block that gives the current thread a findable title, delivered in the turn's final message.
 - **[gpt-image-2](./gpt-image-2/SKILL.md)**: Generate or edit images with OpenAI's gpt-image-2 via the mcp-image MCP server, filed per project as `<slug>/<prefix>-<subject>-v<NN>.png`.
 - **[obsidian-vault](./obsidian-vault/SKILL.md)**: Search, create, and manage notes in the Obsidian vault with wikilinks and index notes.

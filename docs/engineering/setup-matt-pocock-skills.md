@@ -34,7 +34,6 @@ It starts each section with the recommended answer, and skips any question its e
 | **Issue tracker** | the one matching your `git remote` | always, because this is the one real choice |
 | **Triage labels** | keep the five canonical names (`needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`) | only if the `triage` skill is installed |
 | **Domain docs** | single-context: one `GLOSSARY.md` plus `docs/adr/` at the root | only if it spots monorepo signals, and then it offers a multi-context `GLOSSARY-MAP.md` |
-| **Project slug** | a slug-case project name and a compact prefix (e.g. `echo-vault` / `ev`), recorded as a `## Project slug` block | only if the block doesn't exist yet; used by skills that file per-project output (currently `gpt-image-2`) |
 
 The tracker options:
 

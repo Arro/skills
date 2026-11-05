@@ -104,7 +104,6 @@ Off the main flow entirely.
 - **`/wait-what`** is the corrective for a message that didn't land. Use it mid-conversation, inside any other skill, and the agent re-pitches what it just said with the context you were missing, in plain English, using the `GLOSSARY.md` vocabulary. It works after the fact; `/grill-with-docs` is the upfront cure, because a shared language agreed early is what stops the jargon arriving at all.
 - **`/teach`**: learn a concept over multiple sessions, using the current directory as a stateful workspace.
 - **`/writing-for-agents`** is the reference for writing documents agents consume: skills, AGENTS.md, pointed-at docs.
-- **`/rename-thread`** gives the current thread a findable title. The agent can't run `/rename` itself, so the deliverable is a copy-able block in the turn's final message. Reach for it when the sidebar name no longer says what the thread became.
 - **`/gpt-image-2`** is for when the deliverable is an image file: generate, edit, or blend with OpenAI's gpt-image-2 through the `mcp-image` MCP server, filed per project by slug and prefix. One image per call, then wait for the verdict, since every call costs money.
 - **`/obsidian-vault`**: search, create, and organize notes in the Obsidian vault: wikilinks, index notes, Title Case, links over folders.
 - **`/edit-article`** improves an article draft: it restructures sections so information dependencies read in order, then tightens prose section by section, confirming each with you.

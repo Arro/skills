@@ -2,7 +2,7 @@
 
 Reads the issue payload from the ISSUE_JSON environment variable (the caller
 already paid for the `gh issue view` round trip) and prints, in order: a header,
-either a REFUSING line or the suggested branch/thread names, and the contract
+either a REFUSING line or the suggested branch name, and the contract
 the agent implements against. The final line is an "EXIT <code>" marker the
 calling shell strips and turns into its own exit status.
 
@@ -58,7 +58,6 @@ def main() -> None:
     kind = "fix" if any(label.lower() in BUG_LABELS for label in labels) else "feat"
 
     print("SUGGESTED_BRANCH %s/%s-%s" % (kind, issue["number"], "-".join(meaningful[:5])))
-    print("SUGGESTED_LABEL #%s %s" % (issue["number"], " ".join(meaningful[:5])))
     print()
 
     comments = issue.get("comments") or []

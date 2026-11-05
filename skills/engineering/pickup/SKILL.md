@@ -24,7 +24,7 @@ The mechanical parts of setup and teardown are scripted, in `~/.claude/skills/pi
 
 | Script | Does | Refuses when |
 | --- | --- | --- |
-| `claim-ticket.sh <id> [--repo o/n] [--dry-run]` | Steps 1–3 in one call: fetches the issue, gates on state and label, claims it (assign + drop the `ready-for-agent` label), prints the contract plus a suggested branch and thread label | Issue is not OPEN (3), lacks `ready-for-agent` (4), or belongs to someone else (5) |
+| `claim-ticket.sh <id> [--repo o/n] [--dry-run]` | Steps 1–3 in one call: fetches the issue, gates on state and label, claims it (assign + drop the `ready-for-agent` label), prints the contract plus a suggested branch name | Issue is not OPEN (3), lacks `ready-for-agent` (4), or belongs to someone else (5) |
 | `setup-worktree.sh <id> <branch> [--no-install] [--skip-port-guard]` | Step 5's mechanics: worktree off `origin/main`, gitignored container, copied `.env*`, collision-free `PORT` (plus any secondary ports), dependencies installed | The worktree or branch already exists (3), or the dev script would silently ignore `PORT` (4) — creating nothing in either case |
 | `stop-dev-servers.sh <worktree-path>` | Step 10's shutdown: kills listeners on the worktree's ports whose working directory is inside it | Never kills a process from outside the worktree — it says so and moves on |
 
@@ -60,8 +60,6 @@ They are deliberately not the whole workflow. Reading the contract, the stacked-
    - `fix/<id>-<slug>` if the issue is labeled a bug, `feat/<id>-<slug>` otherwise.
    - `<id>` lowercase (e.g. `fix/123-…`, `feat/abc-123-…`). For Linear, keeping the identifier in the branch name is also what lets Linear's GitHub integration auto-link the branch and PR to the issue.
    - Slug = first 4–5 meaningful words of the title, kebab-case, lowercase.
-
-   Don't rename the thread — the session is already titled for this ticket by the time `/pickup` runs.
 
 5. **Create an isolated worktree.** Never work in the main checkout — other `/pickup` sessions may be using it.
 

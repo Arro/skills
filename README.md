@@ -264,6 +264,5 @@ General workflow tools, not code-specific.
 
 - **[grilling](./skills/productivity/grilling/SKILL.md)**: Interview the user relentlessly about a plan, decision, or idea until every branch of the design tree is resolved. The reusable interview primitive behind `grill-me`, `grill-with-docs`, `triage`, `wayfinder` and `improve-codebase-architecture`.
 - **[writing-for-agents](./skills/productivity/writing-for-agents/SKILL.md)**: Writing documents for agents: skills, AGENTS.md/CLAUDE.md, and any doc an agent reaches by a pointer.
-- **[rename-thread](./skills/productivity/rename-thread/SKILL.md)**: Emit a copy-able `/rename` block that gives the current thread a findable title, delivered in the turn's final message.
 - **[gpt-image-2](./skills/productivity/gpt-image-2/SKILL.md)**: Generate or edit images with OpenAI's gpt-image-2 via the mcp-image MCP server, filed per project as `<slug>/<prefix>-<subject>-v<NN>.png`.
 - **[obsidian-vault](./skills/productivity/obsidian-vault/SKILL.md)**: Search, create, and manage notes in the Obsidian vault with wikilinks and index notes.

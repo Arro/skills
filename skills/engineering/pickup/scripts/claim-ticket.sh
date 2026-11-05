@@ -3,7 +3,7 @@
 #
 # Prints the contract the agent implements against (the most recent
 # "## Agent Brief" comment if there is one, otherwise the issue body), plus a
-# suggested branch name and thread label. Assigning the issue is the mutex that
+# suggested branch name. Assigning the issue is the mutex that
 # stops two parallel /pickup sessions grabbing the same ticket, so it happens
 # here, before any worktree exists.
 #

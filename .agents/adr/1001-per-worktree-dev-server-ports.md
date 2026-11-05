@@ -21,7 +21,7 @@ A third fact came from the machine itself: a working setup typically keeps a clu
 preferred = 3100 + (cksum("<slug>-<id>") mod 900)
 ```
 
-- `<slug>` is the project slug from the project's `CLAUDE.md` (the same block `rename-thread` reads), so `<slug-a>-15` and `<slug-b>-15` map to different ports. Folding the slug in is what keeps the collision risk genuinely tiny.
+- `<slug>` is the project slug from the project's `CLAUDE.md` (falling back to the repo's directory name), so `<slug-a>-15` and `<slug-b>-15` map to different ports. Folding the slug in is what keeps the collision risk genuinely tiny.
 - Hashing the `"<slug>-<id>"` string with `cksum` (deterministic across runs, unlike a salted `hash()`) folds GitHub numbers and Linear identifiers in identically — no special-casing.
 - The band `3100–3999` is one **Worktree port band** shared by all projects, chosen to sit clear of the low ports a machine typically keeps occupied by always-on main-checkout servers. It ships as a global default in the skill; a project's `CLAUDE.md` *may* override `band_base`/`band_size`, but the default path needs zero per-project config.
 
