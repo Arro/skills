@@ -22,7 +22,6 @@ Reachable only when you type them (Claude Code: `disable-model-invocation: true`
 - **[test-drive](./test-drive/SKILL.md)**: Check out a picked-up ticket's branch in the main checkout for hands-on testing, tearing down its worktree first.
 - **[wrapup](./wrapup/SKILL.md)**: Finish a picked-up ticket: merge its PR once CI is green, then tear down the worktree and branch.
 - **[grab](./grab/SKILL.md)**: Pull down a ticket (GitHub or Linear) and take it to an open PR in the current checkout (branch, changes, commit, push, PR). The light, in-place sibling of `pickup`.
-- **[review-loop](./review-loop/SKILL.md)**: Converge an open PR with its reviewer bot: fix the callouts you agree with, push, wait for re-review, repeat until only reasoned disagreements remain, each answered in its PR thread, with the ledger posted as a report on the issue.
 - **[content-inventory](./content-inventory/SKILL.md)**: List everything a page or component must contain (data, actions, inputs, states) with every design decision stripped out, so a redesign can start from first principles instead of inheriting the current UI.
 
 ## Model-invoked

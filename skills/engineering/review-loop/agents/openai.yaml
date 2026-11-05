@@ -1,5 +1,0 @@
-interface:
-  display_name: "Review Loop"
-  short_description: "Converge a PR with its reviewer bot"
-policy:
-  allow_implicit_invocation: false

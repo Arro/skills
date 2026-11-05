@@ -43,7 +43,6 @@
     "./skills/engineering/queue",
     "./skills/engineering/pickup",
     "./skills/engineering/grab",
-    "./skills/engineering/review-loop",
     "./skills/engineering/test-drive",
     "./skills/engineering/wrapup",
     "./skills/engineering/content-inventory",
