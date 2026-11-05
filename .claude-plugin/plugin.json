@@ -54,7 +54,6 @@
     "./skills/productivity/wait-what",
     "./skills/productivity/writing-for-agents",
     "./skills/productivity/edit-article",
-    "./skills/productivity/rename-thread",
     "./skills/productivity/gpt-image-2",
     "./skills/productivity/obsidian-vault"
   ]

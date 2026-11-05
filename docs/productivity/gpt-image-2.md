@@ -25,4 +25,4 @@ The server runs a prompt optimizer that expands terse prompts before they reach 
 
 ## Where it fits
 
-A reach-for-it-anytime standalone — the one skill in the set whose deliverable is an image, not text or code. It shares the `## Project slug` convention that [setup-matt-pocock-skills](https://aihero.dev/skills-setup-matt-pocock-skills) records. For the map over the whole set, see [ask-matt](https://aihero.dev/skills-ask-matt).
+A reach-for-it-anytime standalone — the one skill in the set whose deliverable is an image, not text or code. It owns the `## Project slug` convention: when a project has no block yet, the skill asks for one and writes it. For the map over the whole set, see [ask-matt](https://aihero.dev/skills-ask-matt).
