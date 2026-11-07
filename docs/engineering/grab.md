@@ -17,7 +17,10 @@ You invoke this by typing `/grab <id>` — the [agent](https://www.aihero.dev/ai
 ## Prerequisites
 
 - An issue tracker the session can drive: the `gh` CLI for GitHub, or the Linear [MCP](https://www.aihero.dev/ai-coding-dictionary/mcp) tools for Linear.
-- A clean working tree — uncommitted changes stop the run rather than getting stashed.
+
+## Back to `main` first
+
+Before touching the ticket, `grab` does the `git checkout main && git pull` you'd otherwise type yourself, since the checkout is usually still on a branch whose PR already merged. On a clean tree it just does it. On a dirty one it stops and offers you a choice: stash and sync, commit to the current branch and sync, bring the changes onto the ticket's branch, or stop so you can sort it out. Nothing gets stashed or committed without you picking that option.
 
 ## In place, not isolated
 
@@ -31,7 +34,8 @@ Claiming exists to keep parallel sessions from grabbing the same ticket, and the
 ## It's working if
 
 - The run ends at an open PR against `main` with a `Closes` reference, and you never had to think about worktrees or ports.
-- A dirty working tree, an ambiguous ticket, or a ticket depending on unmerged code gets surfaced back to you instead of worked around.
+- You never type `git checkout main && git pull` before a run: a clean checkout gets synced silently, and a dirty one gets a question with options instead of a guess.
+- An ambiguous ticket, or a ticket depending on unmerged code, gets surfaced back to you instead of worked around.
 - Your checkout is on the feature branch afterwards, and the report tells you so.
 
 ## Where it fits

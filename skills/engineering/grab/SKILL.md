@@ -18,11 +18,31 @@ The ticket can live in GitHub or Linear — detect which from the argument:
 
 Call the ticket's reference `<id>` below: the issue number for GitHub, the identifier (e.g. `ABC-123`) for Linear.
 
+## Before step 1: get the checkout onto an up-to-date `main`
+
+The checkout is usually still sitting on a branch whose PR has already merged. Bring it back to `main` before anything else, so the run never starts from stale ground. Run `git status --porcelain`, and branch on the result:
+
+- **Clean** (no output): switch and pull, no question asked.
+
+  ```sh
+  git checkout main && git pull --ff-only
+  ```
+
+  Already on `main`? Just pull. If the pull refuses (local `main` has diverged from `origin/main`), stop and ask rather than merging or resetting.
+
+- **Dirty** (any output, untracked files included): stop and ask the user how to handle it, naming the current branch and summarising what is uncommitted. Offer these options:
+  1. **Stash, then sync.** `git stash push --include-untracked -m "grab <id>: from <branch>"`, then switch and pull as above. Name the stash in the step 7 report so it isn't forgotten.
+  2. **Commit to the current branch, then sync.** Only when that branch isn't `main`. A WIP commit with a message the user approves; then switch and pull.
+  3. **Bring the changes onto the ticket branch.** For when the uncommitted work belongs to this ticket. Switch and pull with the changes in tow (`git checkout` carries them over unless they conflict; if it refuses, ask again), and they land on the branch step 2 creates.
+  4. **Stop.** The user sorts the tree out themselves and re-runs.
+
+If `git checkout main` fails because `main` is checked out in another worktree, skip the switch and say so: step 2 branches off `origin/main` regardless.
+
 ## Steps
 
 1. **Fetch the ticket.** GitHub: `gh issue view <id> --comments`. Linear: the get-issue MCP tool, with comments. What you implement against: on GitHub, the most recent `## Agent Brief` comment if one exists (the body is then context), otherwise the issue body; on Linear, the description, with comments as context. Read it in full — if it is ambiguous, contradictory, or depends on unmerged code, stop and ask rather than guessing.
 
-2. **Branch off up-to-date `main`.** The working tree must be clean — uncommitted changes are a stop-and-ask, never a stash-and-hope. Then:
+2. **Branch off up-to-date `main`.** The tree is clean by now, unless the user chose to bring their changes along. Never stash or discard anything the user didn't choose to in the sync above. Then:
 
    ```sh
    git fetch origin
@@ -41,7 +61,7 @@ Call the ticket's reference `<id>` below: the issue number for GitHub, the ident
    - `git push -u origin <branch>`
    - `gh pr create --base main` with a body that carries the same `Closes …` reference (Linear's GitHub integration picks up the magic word from the PR body), summarises what changed, and notes anything you deviated on or want the reviewer to look at.
 
-7. **Report.** Output the PR URL and the branch name, and note that the checkout is still on the feature branch (`git switch main` to get back). Do not merge.
+7. **Report.** Output the PR URL and the branch name, and note that the checkout is still on the feature branch (the next `/grab` or `/pickup` switches back to `main` for you). If the sync stashed anything, name the stash and how to restore it (`git stash pop`). Do not merge.
 
 ## Guardrails
 
