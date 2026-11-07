@@ -30,6 +30,26 @@ The mechanical parts of setup and teardown are scripted, in `~/.claude/skills/pi
 
 They are deliberately not the whole workflow. Reading the contract, the stacked-PR judgement, anything in the project's `docs/agents/worktrees.md` (throwaway databases especially — no script touches a database), and all of steps 6–9 stay yours. `claim-ticket.sh` is GitHub-only; for Linear, do steps 1–3 with the Linear MCP tools and start at `setup-worktree.sh`.
 
+## Before step 1: get the main checkout onto an up-to-date `main`
+
+The checkout you were invoked from is usually still sitting on a branch whose PR has already merged. Bring it back to `main` before anything else, so it's ready for the next run and `origin/main` is fresh. Run `git status --porcelain`, and branch on the result:
+
+- **Clean** (no output): switch and pull, no question asked.
+
+  ```sh
+  git checkout main && git pull --ff-only
+  ```
+
+  Already on `main`? Just pull. If the pull refuses (local `main` has diverged from `origin/main`), stop and ask rather than merging or resetting.
+
+- **Dirty** (any output, untracked files included): stop and ask the user how to handle it, naming the current branch and summarising what is uncommitted. Offer these options:
+  1. **Stash, then sync.** `git stash push --include-untracked -m "pickup <id>: from <branch>"`, then switch and pull as above. Name the stash in the step 10 report so it isn't forgotten.
+  2. **Commit to the current branch, then sync.** Only when that branch isn't `main`. A WIP commit with a message the user approves; then switch and pull.
+  3. **Leave it and skip the sync.** The ticket is unaffected: step 5's worktree branches off `origin/main` regardless, so the dirty checkout is simply left as it was.
+  4. **Stop.** The user sorts the tree out themselves and re-runs.
+
+If you were invoked from inside a linked worktree rather than the main checkout, or `git checkout main` fails because `main` is checked out elsewhere, skip the switch and say so: step 5 branches off `origin/main` regardless.
+
 ## Steps
 
 1. **Fetch, gate and claim the issue.** For GitHub, one call covers this step and the next two:
@@ -105,7 +125,7 @@ They are deliberately not the whole workflow. Reading the contract, the stacked-
       ~/.claude/skills/pickup/scripts/stop-dev-servers.sh "$WT"
       ```
       It kills listeners on every port in the worktree's env files, but only those whose working directory is inside the worktree — an unrelated main-checkout server on the same port is reported and left alone.
-    - Output the PR URL, the worktree path (so the user knows where to clean up after merge: `git worktree remove <path>`), and the assigned `PORT`.
+    - Output the PR URL, the worktree path (so the user knows where to clean up after merge: `git worktree remove <path>`), and the assigned `PORT`. If the sync before step 1 stashed anything, name the stash and how to restore it (`git stash pop`).
 
     Do not merge. Do not squash, rebase, or force-push.
 

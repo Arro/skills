@@ -18,6 +18,10 @@ Reach for it when a ticket is already agent-ready — labeled `ready-for-agent`,
 - On GitHub, a `ready-for-agent` label on the ticket — the claim script refuses without it.
 - Optional: a `docs/agents/worktrees.md` in the project, declaring extra gitignored files to copy into a worktree and any secondary ports its services need. The skill reads it as binding when present.
 
+## Back to `main` first
+
+Before claiming anything, `pickup` does the `git checkout main && git pull` you'd otherwise type in the checkout you invoked it from, since that checkout is usually still on a branch whose PR already merged. On a clean tree it just does it. On a dirty one it stops and offers you a choice: stash and sync, commit to the current branch and sync, leave the checkout alone and skip the sync (the ticket's worktree branches off `origin/main` either way), or stop. Nothing gets stashed or committed without you picking that option.
+
 ## The worktree
 
 All work happens in `$MAIN/.worktrees/<id>` — never the main checkout, which other sessions may be using. Setup is scripted: the worktree branches off `origin/main`, gets every root-level `.env*` copied in, a collision-free `PORT` assigned (stable-hashed from the ticket, bumped past anything claimed), and dependencies installed. The scripts refuse rather than half-do — an existing worktree, or a dev script that would silently ignore `PORT`, stops the run.
@@ -32,6 +36,7 @@ Two guardrails do the most work:
 - Several tickets progress at once, and no two sessions ever grab the same issue.
 - Every run ends at an open PR against `main` — never a merge, never a stacked base.
 - The final report gives you a PR URL, a worktree path, and a port.
+- You never type `git checkout main && git pull` before a run: a clean checkout gets synced silently, and a dirty one gets a question with options instead of a guess.
 - A ticket that depends on unmerged code gets surfaced back to you instead of built anyway.
 
 ## Where it fits
