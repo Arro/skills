@@ -17,6 +17,7 @@ Reach for it when a ticket is already agent-ready — labeled `ready-for-agent`,
 - An issue tracker the session can drive: the `gh` CLI for GitHub, or the Linear [MCP](https://www.aihero.dev/ai-coding-dictionary/mcp) tools for Linear.
 - On GitHub, a `ready-for-agent` label on the ticket — the claim script refuses without it.
 - Optional: a `docs/agents/worktrees.md` in the project, declaring extra gitignored files to copy into a worktree and any secondary ports its services need. The skill reads it as binding when present.
+- Optional: a `[user]` email in the repo's `.git/config`. When it belongs to one of your logged-in `gh` accounts (its public profile email, a `users.noreply.github.com` address, or any of its emails if the token has the `user:email` scope), every `gh` call in the run goes out as that account. Your active `gh` account is never switched, so other terminals and parallel sessions are unaffected. With no match, `gh` runs as whatever account is active.
 
 ## Back to `main` first
 

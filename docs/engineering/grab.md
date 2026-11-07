@@ -17,6 +17,7 @@ You invoke this by typing `/grab <id>` — the [agent](https://www.aihero.dev/ai
 ## Prerequisites
 
 - An issue tracker the session can drive: the `gh` CLI for GitHub, or the Linear [MCP](https://www.aihero.dev/ai-coding-dictionary/mcp) tools for Linear.
+- Optional: a `[user]` email in the repo's `.git/config`. When it belongs to one of your logged-in `gh` accounts (its public profile email, a `users.noreply.github.com` address, or any of its emails if the token has the `user:email` scope), every `gh` call in the run goes out as that account. Your active `gh` account is never switched, so other terminals and parallel sessions are unaffected. With no match, `gh` runs as whatever account is active.
 
 ## Back to `main` first
 
@@ -30,6 +31,9 @@ The defining trade is **in place**: `grab` works on a fresh branch in your main 
 
 **Why doesn't it claim the ticket or check for a `ready-for-agent` label?**
 Claiming exists to keep parallel sessions from grabbing the same ticket, and the label marks a queue that `/pickup` and `/queue` drain. `grab` is single-player: you hand it one ticket, so there's no race to guard against and no queue to respect. If the ticket did come off a `ready-for-agent` queue, prefer `/pickup` so the claim keeps other agents off it.
+
+**Why did the PR open under a different GitHub account than my active one?**
+Because the repo's `.git/config` says whose repo it is. If its `[user]` email matches one of your logged-in `gh` accounts, `grab` runs every `gh` command as that account, so a personal repo gets a personal PR even while your work account is active. If the account isn't being picked up, make that email public on its GitHub profile, or add the `user:email` scope to its token (`gh auth refresh -h github.com -s user:email` while it's the active account).
 
 ## It's working if
 

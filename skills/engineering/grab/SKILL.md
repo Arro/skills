@@ -38,6 +38,22 @@ The checkout is usually still sitting on a branch whose PR has already merged. B
 
 If `git checkout main` fails because `main` is checked out in another worktree, skip the switch and say so: step 2 branches off `origin/main` regardless.
 
+## Use the repo's GitHub account
+
+Before the first `gh` command, find out which account this repo belongs to:
+
+```sh
+~/.claude/skills/grab/scripts/gh-account.sh
+```
+
+It prints the logged-in `gh` account whose email matches the `[user]` email in the repo's `.git/config`, or nothing when there is no such section or no account matches. If it prints a login, run every `gh` command in this run as that account by prefixing it with the account's token, scripts included:
+
+```sh
+GH_TOKEN="$(gh auth token --user <login>)" gh issue view <id> --comments
+```
+
+If it prints nothing, use `gh` as it is. Never `gh auth switch`: it changes the active account for every other terminal and session on the machine. Do this quietly; there is no need to mention it to the user unless a `gh` call fails because of it.
+
 ## Steps
 
 1. **Fetch the ticket.** GitHub: `gh issue view <id> --comments`. Linear: the get-issue MCP tool, with comments. What you implement against: on GitHub, the most recent `## Agent Brief` comment if one exists (the body is then context), otherwise the issue body; on Linear, the description, with comments as context. Read it in full — if it is ambiguous, contradictory, or depends on unmerged code, stop and ask rather than guessing.
