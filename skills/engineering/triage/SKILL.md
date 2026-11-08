@@ -69,6 +69,8 @@ The maintainer invokes `/triage` and describes what they want in natural languag
 - "Move #42 to ready-for-agent"
 - "What's ready for agents to pick up?"
 
+**A `ready-for-agent` issue is desired.** That is the normal expectation whenever `/triage` is invoked on an issue or PR: the maintainer wants it to end with an agent brief an AFK agent can pick up. Work toward that outcome. Verify the claim, grill until the open questions are closed, and write the brief. Recommend a different state only when the evidence points there: the reporter must answer something only they know (`needs-info`), the work genuinely can't be delegated (`ready-for-human`), or it shouldn't be done (`wontfix`). When you do, say why `ready-for-agent` isn't reachable yet.
+
 ## Show what needs attention
 
 Query the issue tracker and present three buckets, oldest first:
@@ -85,7 +87,7 @@ Show counts and a one-line summary per item. Let the maintainer pick.
 
 1. **Gather context.** Read the full issue or PR (body, comments, labels, author, dates; for a PR, the diff too). Parse any prior triage notes so you don't re-ask resolved questions. Explore the codebase using the project's domain glossary, respecting ADRs in the area. Run two checks against the codebase: (a) **redundancy**: search for an existing implementation of the requested behavior by domain concept (not just the request's wording), and report where you looked. If found, it's an already-implemented `wontfix` (step 5). (b) **prior rejection**: read `.out-of-scope/*.md` and surface any that resembles this request.
 
-2. **Recommend.** Tell the maintainer your category and state recommendation with reasoning, plus a brief codebase summary relevant to the request (including whether it's already implemented). Wait for direction.
+2. **Recommend.** Tell the maintainer your category and state recommendation with reasoning (aiming for `ready-for-agent`, per [Invocation](#invocation)), plus a brief codebase summary relevant to the request (including whether it's already implemented). Wait for direction.
 
 3. **Verify the claim.** Before any grilling, check that the claim holds up. For a bug, reproduce it from the reporter's steps. For a PR, confirm the diff does what it claims: check it out, run the relevant tests or commands. Report what happened: confirmed (with code path), failed, or insufficient detail (a strong `needs-info` signal). A confirmed verification makes a much stronger agent brief.
 
