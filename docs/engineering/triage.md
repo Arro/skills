@@ -24,6 +24,8 @@ You invoke this by typing `/triage` and then describing what you want in plain l
 
 The tracker config also decides whether external pull requests count as a request surface, and who counts as external. That flag is off by default, and setup no longer asks about it. To bring PRs into scope, turn it on in `docs/agents/issue-tracker.md`.
 
+On GitHub, `triage` runs `gh` as the account that owns the repo. If the repo's `.git/config` has a `[user]` email that belongs to one of your logged-in `gh` accounts (its public profile email, a `users.noreply.github.com` address, or any of its emails if the token has the `user:email` scope), every label change, comment and close goes out as that account. Your active `gh` account is never switched, so other terminals and sessions are unaffected. With no match, `gh` runs as whatever account is active.
+
 ## The state machine
 
 Every triaged item ends with exactly one category role and one state role. There are two categories: `bug` (something is broken) and `enhancement` (new feature or improvement). There are five states:
