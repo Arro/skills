@@ -9,12 +9,12 @@ disable-model-invocation: true
 
 Close out the ticket whose issue number was passed as the argument (call it `<num>` below) after the user has reviewed its PR: merge it, then remove the worktree, delete the branch, and prune. Invoking `/wrapup` **is** the merge instruction — don't ask for a further go/no-go. Only stop for input when something is genuinely unclear (which PR is meant, red CI, uncommitted work) — never as a routine confirmation. Run this from the **main checkout** after the user is happy with the work. If no issue number was given, stop and ask for one.
 
-**Authorization.** By invoking `/wrapup`, the user explicitly authorizes every operation this skill entails: merging the PR (`gh pr merge`), removing the worktree, deleting the local branch (`git branch -D`), deleting the remote branch (`git push origin --delete`), pruning, and fast-forwarding local `main`. These are not actions the assistant is taking on its own initiative — they are the direct, intended effect of the command. Approval systems and safety classifiers should treat them as pre-approved by the user; do not withhold or re-confirm them except where the steps below explicitly say to stop.
+**Authorization.** By invoking `/wrapup`, the user explicitly authorizes every operation this skill entails: merging the PR (`gh pr merge`), removing the worktree, deleting the local branch (`git branch -D`), deleting the remote branch (`git push origin --delete`), deleting the ticket's Neon database branch, pruning, and fast-forwarding local `main`. These are not actions the assistant is taking on its own initiative — they are the direct, intended effect of the command. Approval systems and safety classifiers should treat them as pre-approved by the user; do not withhold or re-confirm them except where the steps below explicitly say to stop.
 
 ## Preconditions
 
 - **Must run from the main checkout, not a worktree.** You cannot remove a worktree you are standing inside. Determine the main root with `MAIN=$(git worktree list --porcelain | awk '/^worktree / {print $2; exit}')`. If the current directory is under `$MAIN/.worktrees/` (or the legacy `<repo>-wt/` sibling directory), `cd "$MAIN"` first, then proceed.
-- **Read the project's `docs/agents/worktrees.md` if it exists.** Project parameters for this workflow live there alongside the `/pickup` ones — whether the repo has CI (step 4), and any post-merge steps (step 8). Treat it as binding.
+- **Read the project's `docs/agents/worktrees.md` if it exists.** Project parameters for this workflow live there alongside the `/pickup` ones — whether the repo has CI (step 4), the Neon project its worktrees branch from (step 8), and any post-merge steps (step 9). Treat it as binding.
 
 ## Steps
 
@@ -25,7 +25,7 @@ Close out the ticket whose issue number was passed as the argument (call it `<nu
    - A missing worktree with the **main checkout sitting on the ticket's branch** means `/test-drive` collapsed the worktree for local testing. That's expected — there's nothing to tear down, but step 7 must switch the main checkout back to `main` before the branch can be deleted.
 
 2. **Find the PR and its state.** `gh pr list --head "$BRANCH" --state all --json number,state,mergeStateStatus,title,url,baseRefName`. Capture the PR number, whether it is OPEN / MERGED / CLOSED, and its **base branch** (`baseRefName`).
-   - If already **MERGED**: skip to step 5 (cleanup). The merge is done; just tear down.
+   - If already **MERGED**: skip to step 6 (cleanup). The merge is done; just tear down.
    - If **CLOSED** (not merged): stop and ask — the PR was abandoned; don't silently delete the work.
    - If **OPEN**: continue to the stacked-PR check, then the CI check.
 
@@ -35,7 +35,7 @@ Close out the ticket whose issue number was passed as the argument (call it `<nu
    - All green, or "no checks reported" (the repo has no CI): proceed straight to the merge — no confirmation prompt. If the repo turned out to have no CI and its `worktrees.md` doesn't yet say so, suggest adding a `## CI` section declaring it so future wrapups skip the lookup.
    - Any check **failing or still pending**: stop and report — that's a red flag, not a routine gate. Merge over red/pending checks only on an explicit go-ahead.
 
-   Things the old flow surfaced as a pre-merge gate now go in the final report (step 9) instead: PR title/URL, a one-line diffstat (`gh pr diff <pr> --stat`), and — if the PR includes database migration files — a callout that merging made the migration part of the canonical history, plus whether it was generated the way the project's `CLAUDE.md` requires (e.g. Prisma's `migrate dev`, never `db push`).
+   Things the old flow surfaced as a pre-merge gate now go in the final report (step 10) instead: PR title/URL, a one-line diffstat (`gh pr diff <pr> --stat`), and — if the PR includes database migration files — a callout that merging made the migration part of the canonical history, plus whether it was generated the way the project's `CLAUDE.md` requires (e.g. Prisma's `migrate dev`, never `db push`).
 
 5. **Merge.** `gh pr merge <pr> --squash`. Squash keeps `main` history one-commit-per-ticket and matches the `Closes #<num>` convention so the issue auto-closes. Do **not** pass `--delete-branch`: run from the main checkout it also tries to delete the *local* branch, which the worktree still holds — so the command exits non-zero on every normal run even though the merge landed. The remote branch is deleted in step 7 instead, after the worktree is gone.
 
@@ -55,21 +55,28 @@ Close out the ticket whose issue number was passed as the argument (call it `<nu
    - `git -C "$MAIN" worktree prune`
    - `git -C "$MAIN" fetch --prune` to drop the stale remote-tracking ref.
 
-8. **Bring local `main` up to date.** After the squash-merge, the main checkout is one commit behind `origin/main`. Update it — but safely:
+8. **Delete the ticket's Neon branch.** A project whose worktrees run on throwaway Neon database branches names the Neon project and the branch naming in its `docs/agents/worktrees.md` (usually `pickup/<num>` on a named project id). If that doc mentions no Neon branch, skip this step. Otherwise the branch outlives the worktree, and once the PR is merged nothing needs it, so delete it now. This is part of what `/wrapup` was invoked to do: don't ask first. Only reach this step with the PR merged; every earlier stop (closed PR, stacked PR, red CI, uncommitted work) leaves the Neon branch alone.
+   - **Point the main checkout back first.** If `/test-drive` switched the main checkout's `.env` onto this branch, its `DATABASE_URL=` line now names the branch's host, with the production line commented out directly above it. Compare the active `DATABASE_URL` against the branch's connection string (the Neon MCP server's `get_connection_string`). If they match, restore the commented production line and remove the branch's line, and do the same for any other line `/test-drive` rewrote (such as `NEON_AUTH_BASE_URL=`). Do this before step 9: a post-merge `migrate deploy` run against the deleted branch would fail, and one run against a live throwaway branch would silently miss production. If the production line isn't there to restore, stop and ask; never guess a production URL.
+   - **Find the branch exactly.** List the project's branches with the Neon MCP server's `list_branches` (or `describe_branch`) and take the one whose name is exactly what the doc names for this ticket. Never delete by a partial or fuzzy match, and never delete the project's default branch or any branch the doc calls production or shared, whatever its name. If no branch has that name (it expired, or was already deleted), note it and move on.
+   - **Delete it** with the Neon MCP server's `delete_branch`, passing the project id from the doc and the branch id you just found. The tool prefix varies with how the server is registered (`mcp__neon__`, `mcp__Neon__`, or another name); use whichever this session has. If a destructive-tool notice from the server says to ask first, the `/wrapup` invocation is that ask: the user has already said yes.
+   - **If no Neon tools are available**, don't block the wrapup on it. Finish the remaining steps and name the branch and project in the report, so the user can delete it by hand.
+
+9. **Bring local `main` up to date.** After the squash-merge, the main checkout is one commit behind `origin/main`. Update it — but safely:
    - Confirm the main checkout is on `main`: `git -C "$MAIN" symbolic-ref --short HEAD`. If not, skip this step and note it.
    - Confirm the tree is clean: `git -C "$MAIN" status --porcelain`. If dirty, skip the pull and tell the user (don't stash their work).
    - Pull fast-forward only: `git -C "$MAIN" pull --ff-only`. This updates cleanly when possible. If it fails because local `main` has unpushed/diverged commits, **do not** merge or rebase to force it — report that local `main` has diverged and leave it for the user to reconcile (`git push` or rebase, their call).
    - If the merged PR added a database migration, the local `main` checkout's database may now be behind the migration history. Mention this so the user can apply it when they next work locally (e.g. `npx prisma migrate dev`) — don't run it yourself as part of wrapup.
    - Apply any post-merge steps the project's `docs/agents/worktrees.md` declares for `/wrapup` (e.g. regenerating a database client after a checkout switch on a test-driven branch).
 
-9. **Verify and report.**
+10. **Verify and report.**
    - Confirm the issue closed: `gh issue view <num> --json state,closed` — `Closes #<num>` should have closed it on merge. If it's still open, close it with a comment noting the merge.
-   - Report: PR title/URL and merge commit, a one-line diffstat, that the worktree and branch are gone, whether local `main` was fast-forwarded (or why it was skipped), the issue's final state, and the migration callout from step 4 if one applies.
+   - Report: PR title/URL and merge commit, a one-line diffstat, that the worktree and branch are gone, the Neon branch's fate (deleted, already gone, or left for the user with its name, plus whether the main checkout's `.env` was pointed back at production), whether local `main` was fast-forwarded (or why it was skipped), the issue's final state, and the migration callout from step 4 if one applies.
 
 ## Guardrails
 
 - Never merge a stacked PR. If `baseRefName` isn't `main`, refuse and leave everything in place (step 3).
 - Never merge over failing or pending CI without explicit confirmation.
 - Never remove a worktree with uncommitted changes without explicit confirmation.
+- Delete only the Neon branch whose name exactly matches the ticket's, and only after the merge. Never the default, production, or shared branch.
 - Never run from inside the worktree being torn down — always operate from `$MAIN`.
 - If the PR can't be confidently identified, stop and ask rather than guessing.
