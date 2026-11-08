@@ -32,11 +32,20 @@ Two guardrails do the most work:
 - **Never a stacked PR.** The branch point is always `origin/main` and the PR base is always `main`. A ticket that asks for anything else is a sequencing problem to surface, not an instruction to follow.
 - **Never merge.** The run ends at an open PR, a stopped dev server, and a report carrying the PR URL, the worktree path, and the assigned port.
 
+## Finishing on a fresh `main`
+
+Other PRs often merge while a ticket is being built. Before the first push, `pickup` checks whether `origin/main` has moved since the worktree branched off it. If it has, it rebases onto the new `main` without asking and re-runs validation, so the PR you review is tested against the code it will actually merge into. Because the branch hasn't been pushed yet, this never needs a force-push. A conflict it can't resolve with confidence inside the ticket's own files aborts the rebase and comes back to you as a question.
+
+## Testing by hand afterwards
+
+The session stops its own dev server so nothing outlives it. To test the branch yourself, the report ends with a one-line command to paste into a new terminal: a `cd` into the worktree followed by the project's dev command (`pnpm dev`, say), plus the `http://localhost:<port>` it will serve on. The server picks up the worktree's assigned port from its own env file, so it won't collide with the main checkout or a sibling worktree. Once it's running from your terminal, it's yours to stop.
+
 ## It's working if
 
 - Several tickets progress at once, and no two sessions ever grab the same issue.
 - Every run ends at an open PR against `main` — never a merge, never a stacked base.
-- The final report gives you a PR URL, a worktree path, and a port.
+- The final report gives you a PR URL, a worktree path, a port, and a paste-ready command that brings the dev server up in that worktree.
+- PRs open already rebased on whatever merged to `main` during the run, rather than showing up behind it.
 - You never type `git checkout main && git pull` before a run: a clean checkout gets synced silently, and a dirty one gets a question with options instead of a guess.
 - A ticket that depends on unmerged code gets surfaced back to you instead of built anyway.
 
