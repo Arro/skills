@@ -26,6 +26,7 @@ The mechanical parts of setup and teardown are scripted, in `~/.claude/skills/pi
 | --- | --- | --- |
 | `claim-ticket.sh <id> [--repo o/n] [--dry-run]` | Steps 1–3 in one call: fetches the issue, gates on state and label, claims it (assign + drop the `ready-for-agent` label), prints the contract plus a suggested branch name | Issue is not OPEN (3), lacks `ready-for-agent` (4), or belongs to someone else (5) |
 | `setup-worktree.sh <id> <branch> [--no-install] [--skip-port-guard]` | Step 5's mechanics: worktree off `origin/main`, gitignored container, copied `.env*`, collision-free `PORT` (plus any secondary ports), dependencies installed | The worktree or branch already exists (3), or the dev script would silently ignore `PORT` (4) — creating nothing in either case |
+| `gh-account.sh` | Prints the `gh` login whose email matches the repo-local `user.email` (see below) | Never: prints nothing when there is no match |
 | `stop-dev-servers.sh <worktree-path>` | Step 10's shutdown: kills listeners on the worktree's ports whose working directory is inside it | Never kills a process from outside the worktree — it says so and moves on |
 
 They are deliberately not the whole workflow. Reading the contract, the stacked-PR judgement, anything in the project's `docs/agents/worktrees.md` (throwaway databases especially — no script touches a database), and all of steps 6–9 stay yours. `claim-ticket.sh` is GitHub-only; for Linear, do steps 1–3 with the Linear MCP tools and start at `setup-worktree.sh`.
@@ -49,6 +50,22 @@ The checkout you were invoked from is usually still sitting on a branch whose PR
   4. **Stop.** The user sorts the tree out themselves and re-runs.
 
 If you were invoked from inside a linked worktree rather than the main checkout, or `git checkout main` fails because `main` is checked out elsewhere, skip the switch and say so: step 5 branches off `origin/main` regardless.
+
+## Use the repo's GitHub account
+
+Before the first `gh` command, find out which account this repo belongs to:
+
+```sh
+~/.claude/skills/pickup/scripts/gh-account.sh
+```
+
+It prints the logged-in `gh` account whose email matches the `[user]` email in the repo's `.git/config`, or nothing when there is no such section or no account matches. If it prints a login, run every `gh` command in this run as that account by prefixing it with the account's token, scripts included:
+
+```sh
+GH_TOKEN="$(gh auth token --user <login>)" ~/.claude/skills/pickup/scripts/claim-ticket.sh <id>
+```
+
+If it prints nothing, use `gh` as it is. Never `gh auth switch`: it changes the active account for every other terminal and session on the machine. Do this quietly; there is no need to mention it to the user unless a `gh` call fails because of it.
 
 ## Steps
 
