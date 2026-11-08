@@ -4,6 +4,8 @@
 
 It is only for issues **you didn't create**. That means raw bug reports, incoming feature requests, or an external pull request that arrived unannounced: work that came into the tracker from outside, in whatever shape the reporter left it. [Tickets](https://www.aihero.dev/ai-coding-dictionary/ticket) from [to-tickets](https://aihero.dev/skills-to-tickets) are already agent-ready, so if you run `triage` over them, you waste the work. The rule is simple: `/triage` is only for incoming issues, not for issues you created yourself.
 
+Its default goal is `ready-for-agent`. When you invoke `/triage` on an issue, the normal expectation is that you want it to end with an agent brief, so `triage` verifies, grills and briefs toward that outcome. It lands on `needs-info`, `ready-for-human` or `wontfix` only when the evidence points there, and it tells you why `ready-for-agent` isn't reachable yet.
+
 It also differs from labelling by hand because it recommends and then waits. It gives you its category and state call with reasoning, plus what it found in the codebase, and applies nothing until you tell it to.
 
 ## When to reach for it
