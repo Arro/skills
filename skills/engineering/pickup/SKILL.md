@@ -132,7 +132,13 @@ If it prints nothing, use `gh` as it is. Never `gh auth switch`: it changes the 
 
 8. **Commit.** Stage the files you actually changed (never `git add -A`). Keep generated artifacts that belong with the change together in the commit (e.g. a schema change and its migration folder). Conventional-style message ending with the closing reference — `Closes #<id>` for GitHub, `Closes <id>` (e.g. `Closes ABC-123`) for Linear — so the tracker auto-closes the issue on merge. One commit unless the work has natural seams.
 
-9. **Push and open the PR.**
+9. **Catch up with `main`, push, and open the PR.**
+   - **Rebase onto `main` if it moved while you worked.** Other PRs often merge during a run, so check before the first push, while the branch is still local:
+     ```sh
+     git fetch origin main
+     [ "$(git merge-base HEAD origin/main)" = "$(git rev-parse origin/main)" ] && echo "main unchanged" || echo "main moved"
+     ```
+     If `main` is unchanged, push as it is. If it moved, rebase without asking: `git rebase origin/main`. Then reinstall dependencies if the rebase changed the lockfile, and re-run step 7's validation, because code that passed against the old `main` can fail against the new one. A conflict you can resolve with confidence inside the files this ticket changed, resolve and continue. Anything else (a conflict in code you didn't touch, or one whose right resolution depends on intent you can't see) is a stop-and-ask: `git rebase --abort` first, so the branch is back as it was. The branch isn't pushed yet, so none of this needs a force-push. Say in the report whether you rebased.
    - `git push -u origin <branch>`
    - `gh pr create --base main` with a body that links the issue (same `Closes …` reference as the commit — Linear's GitHub integration picks up the magic word from the PR body), summarises what changed, and notes anything you deviated on or want the reviewer to look at. The PR base is **always** `main` — never another feature branch.
 
@@ -142,9 +148,14 @@ If it prints nothing, use `gh` as it is. Never `gh auth switch`: it changes the 
       ~/.claude/skills/pickup/scripts/stop-dev-servers.sh "$WT"
       ```
       It kills listeners on every port in the worktree's env files, but only those whose working directory is inside the worktree — an unrelated main-checkout server on the same port is reported and left alone.
-    - Output the PR URL, the worktree path (so the user knows where to clean up after merge: `git worktree remove <path>`), and the assigned `PORT`. If the sync before step 1 stashed anything, name the stash and how to restore it (`git stash pop`).
+    - Output the PR URL, the worktree path (so the user knows where to clean up after merge: `git worktree remove <path>`), the assigned `PORT`, and whether step 9 rebased onto a newer `main`. If the sync before step 1 stashed anything, name the stash and how to restore it (`git stash pop`).
+    - **Hand the user the command to bring the dev server back up themselves.** You stop yours so nothing outlives the session; the user usually wants to test the branch by hand afterwards. Give one line they can paste into a new terminal, in its own fenced block, with the worktree's absolute path and the dev command for the project's package manager (the same lockfile check `setup-worktree.sh` uses: `pnpm dev`, `yarn dev`, `bun run dev`, or `npm run dev`):
+      ```sh
+      cd /abs/path/to/.worktrees/<id> && pnpm dev
+      ```
+      Follow it with the URL it serves on, `http://localhost:<PORT>`. The dev script reads `PORT` from the worktree's `.env.local` itself (step 5's port guard made sure of that), so the command needs no port of its own. Where the project's `CLAUDE.md` or `docs/agents/worktrees.md` names a different dev command, or extra services started alongside it, use that instead. Skip this bullet only for a project with no dev server (one set up with `--skip-port-guard`).
 
-    Do not merge. Do not squash, rebase, or force-push.
+    Do not merge. Beyond step 9's catch-up rebase, do not squash, rebase, or force-push.
 
 ## Guardrails
 
@@ -156,7 +167,7 @@ If it prints nothing, use `gh` as it is. Never `gh auth switch`: it changes the 
 - If you discover the contract is wrong (e.g. an acceptance criterion is impossible or conflicts with the codebase), stop and ask — do not unilaterally redefine it.
 - If validation surfaces pre-existing failures unrelated to your change, mention them in the PR body but do not fix them in this PR.
 - If you bail out mid-run after creating the worktree, leave it in place and tell the user the path so they can resume or clean up. Do not silently delete in-progress work — but still stop any dev server you started (the step-10 shutdown), so a left-behind worktree never means a left-behind server.
-- Never leave a dev server running when the session ends. On success or bail-out, stop whatever is listening on the worktree's `PORT` (verifying its working directory is inside the worktree first).
+- Never leave a dev server you started running when the session ends (one the user starts from the step-10 command is theirs). On success or bail-out, stop whatever is listening on the worktree's `PORT` (verifying its working directory is inside the worktree first).
 
 ## Failure recovery
 
