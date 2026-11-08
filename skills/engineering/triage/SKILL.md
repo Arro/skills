@@ -21,6 +21,22 @@ Every comment or issue posted to the issue tracker during triage **must** start 
 - [AGENT-BRIEF.md](AGENT-BRIEF.md): how to write durable agent briefs
 - [OUT-OF-SCOPE.md](OUT-OF-SCOPE.md): how the `.out-of-scope/` knowledge base works
 
+## Use the repo's GitHub account
+
+When the tracker is GitHub (or PRs are in scope), find out which account this repo belongs to before the first `gh` command:
+
+```sh
+~/.claude/skills/triage/scripts/gh-account.sh
+```
+
+It prints the logged-in `gh` account whose email matches the `[user]` email in the repo's `.git/config`, or nothing when there is no such section or no account matches. If it prints a login, run every `gh` command in this session as that account by prefixing it with the account's token:
+
+```sh
+GH_TOKEN="$(gh auth token --user <login>)" gh issue view <id> --comments
+```
+
+If it prints nothing, use `gh` as it is. Never `gh auth switch`: it changes the active account for every other terminal and session on the machine. Do this quietly; there is no need to mention it to the user unless a `gh` call fails because of it.
+
 ## Roles
 
 Two **category** roles:
