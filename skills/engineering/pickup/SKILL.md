@@ -18,6 +18,12 @@ Call the ticket's reference `<id>` below: the issue number for GitHub, the ident
 
 Project parameters for this workflow — any extra gitignored files to copy into a worktree, and any secondary port names the project's services need (e.g. `INNGEST_PORT = PORT + 10000`) — live in the project's `docs/agents/worktrees.md`; read it if it exists. Everything else project-specific — validation commands, schema/migration rules — lives in the project's `CLAUDE.md`. Read both before you start and treat them as binding.
 
+## Running `/pickup` is the approval
+
+The user typed `/pickup <id>`, and that is their go-ahead for every step this skill prescribes: syncing `main`, claiming the ticket, creating the branch and worktree, installing dependencies, committing, pushing, and opening the PR. Take those steps without asking permission first. Never put up a question to confirm something the skill already tells you to do ("May I pull `main`?", "May I create the worktree?"): say what you are doing in a line and do it.
+
+Ask only where this skill says to stop and ask: a dirty checkout, a script that exits non-zero, a contract that is ambiguous or wrong, a ticket that wants a stacked PR, a rebase conflict you can't resolve with confidence. Those are real decisions. Everything else is the job the user already gave you.
+
 ## Scripts
 
 The mechanical parts of setup and teardown are scripted, in `~/.claude/skills/pickup/scripts/`. Use them rather than retyping their steps — they encode the guardrails (branch point, port collisions, killing only your own servers) and refuse rather than half-doing the job.
