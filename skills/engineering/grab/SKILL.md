@@ -18,6 +18,12 @@ The ticket can live in GitHub or Linear — detect which from the argument:
 
 Call the ticket's reference `<id>` below: the issue number for GitHub, the identifier (e.g. `ABC-123`) for Linear.
 
+## Running `/grab` is the approval
+
+The user typed `/grab <id>`, and that is their go-ahead for every step this skill prescribes: syncing `main`, creating the branch, making the changes, committing, pushing, and opening the PR. Take those steps without asking permission first. Never put up a question to confirm something the skill already tells you to do ("May I pull `main`?", "May I create the branch?"): say what you are doing in a line and do it.
+
+Ask only where this skill says to stop and ask: a dirty checkout, a pull that refuses, a ticket that is ambiguous, contradictory, or dependent on unmerged code. Those are real decisions. Everything else is the job the user already gave you.
+
 ## Before step 1: get the checkout onto an up-to-date `main`
 
 The checkout is usually still sitting on a branch whose PR has already merged. Bring it back to `main` before anything else, so the run never starts from stale ground. Run `git status --porcelain`, and branch on the result:

@@ -14,6 +14,8 @@ You invoke this by typing `/grab <id>` — the [agent](https://www.aihero.dev/ai
 | Several tickets in parallel, each in its own session and worktree | [pickup](https://aihero.dev/skills-pickup) |
 | Building serially in the session you're in, no PR ceremony | [implement](https://aihero.dev/skills-implement) |
 
+Typing the command is the approval. `grab` does not come back to ask whether it may pull `main`, create the branch, or open the PR: those are the steps you asked for by running it. It only stops for real decisions, such as a dirty checkout or a ticket it can't follow as written.
+
 ## Prerequisites
 
 - An issue tracker the session can drive: the `gh` CLI for GitHub, or the Linear [MCP](https://www.aihero.dev/ai-coding-dictionary/mcp) tools for Linear.
@@ -39,6 +41,7 @@ Because the repo's `.git/config` says whose repo it is. If its `[user]` email ma
 
 - The run ends at an open PR against `main` with a `Closes` reference, and you never had to think about worktrees or ports.
 - You never type `git checkout main && git pull` before a run: a clean checkout gets synced silently, and a dirty one gets a question with options instead of a guess.
+- A run on a clean checkout reaches the open PR without a single "May I...?" prompt for a step the skill prescribes.
 - An ambiguous ticket, or a ticket depending on unmerged code, gets surfaced back to you instead of worked around.
 - Your checkout is on the feature branch afterwards, and the report tells you so.
 
