@@ -12,6 +12,8 @@ You invoke this by typing `/pickup <id>` — the [agent](https://www.aihero.dev/
 
 Reach for it when a ticket is already agent-ready — labeled `ready-for-agent`, with a contract worth implementing against. For building tickets serially in the session you're already in, use [implement](https://aihero.dev/skills-implement) instead; `pickup` earns its overhead when you want several tickets moving at once, each in its own session and [context window](https://www.aihero.dev/ai-coding-dictionary/context-window).
 
+Typing the command is the approval. `pickup` does not come back to ask whether it may pull `main`, create the branch and worktree, or open the PR: those are the steps you asked for by running it. It only stops for real decisions, such as a dirty checkout, a refused script, or a contract it can't follow as written.
+
 ## Prerequisites
 
 - An issue tracker the session can drive: the `gh` CLI for GitHub, or the Linear [MCP](https://www.aihero.dev/ai-coding-dictionary/mcp) tools for Linear.
@@ -47,6 +49,7 @@ The session stops its own dev server so nothing outlives it. To test the branch 
 - The final report gives you a PR URL, a worktree path, a port, and a paste-ready command that brings the dev server up in that worktree.
 - PRs open already rebased on whatever merged to `main` during the run, rather than showing up behind it.
 - You never type `git checkout main && git pull` before a run: a clean checkout gets synced silently, and a dirty one gets a question with options instead of a guess.
+- A run on a clean checkout reaches the open PR without a single "May I...?" prompt for a step the skill prescribes.
 - A ticket that depends on unmerged code gets surfaced back to you instead of built anyway.
 
 ## Where it fits
