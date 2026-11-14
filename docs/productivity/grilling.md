@@ -24,7 +24,7 @@ The skill rests on three ideas.
 
 The **design tree** is the model of the subject: decisions with decisions hanging off them. The **frontier** is the set of decisions whose prerequisites are all settled: the only questions the agent can ask yet. A **round** is one frontier, asked in full and answered in full.
 
-Inside a round, every question has a fixed format: numbered and titled behind a `❓`, then the body, then the agent's recommended answer alone on a `➡️` line. This format lets you answer a round by number ("1 yes, 2 the second option, 3 no, here's why") instead of by quoting questions back. The format has one known problem. The recommendation sometimes argues *against* the question as it was worded, so agreeing with the recommendation means answering "no" to the question. When that happens, answer the recommendation and say so.
+Inside a round, each question goes out through the [harness](https://www.aihero.dev/ai-coding-dictionary/harness)'s structured question tool where one exists (`AskUserQuestion` in Claude Code, `request_user_input` in Codex). A question arrives with a title, a short body, and two to four clickable options. The agent's recommendation is the first option and is marked as such, and a free-text "Other" is always there for an answer the options missed. The agent packs as many questions into one call as the tool allows (four, in Claude Code), so you click through a round in one sitting rather than waiting on the agent between answers. A round larger than the cap arrives as consecutive calls. In a harness with no such tool, the round falls back to text: each question numbered and titled behind a `❓`, then the body, then the recommended answer alone on a `➡️` line, so you can answer by number ("1 yes, 2 the second option, 3 no, here's why"). In either form the question is worded so "yes" accepts the recommendation.
 
 The other half of the design is the split between facts and decisions. Facts are the skill's own job. When a frontier question needs something the [environment](https://www.aihero.dev/ai-coding-dictionary/environment) can settle, the agent dispatches a [sub-agent](https://www.aihero.dev/ai-coding-dictionary/subagent) to find out rather than asking you. The round does not wait for that research; only the questions that depend on it wait. Decisions are yours, and the agent must wait for them. An agent running `grilling` that answers its own decisions has broken the skill. The session ends when the frontier is empty. The agent then waits for you to confirm a shared understanding before it acts on what you agreed.
 
@@ -51,6 +51,9 @@ When grilling, ask one question at a time.
 
 Not everyone prefers the round-based default. Users who read slowly, who work in a second language, or who use the sequential format to help them focus report that one question at a time works better for them. The opt-out is a supported setting, not a workaround.
 
+**It dumped five paragraphs of questions instead of giving me options to click.**
+Two causes. Either the harness has no structured question tool (then the numbered text format is the intended fallback), or the agent skipped the tool it has. In the second case, say so: "ask through the question tool" is enough to put the next round back into clickable form. One user described the text form as reading five paragraphs and scrolling up and down to type "question one, yes, question two, no"; that is exactly the experience the tool-first default exists to remove.
+
 **Where did `/batch-grill-me` go?**
 Into this skill. Round-based questioning shipped briefly as a separate skill, then moved into `grilling` itself, so everything built on the primitive (`grill-me`, `grill-with-docs`, `triage`, `wayfinder`) got it at once. There is no `batch-grill-me` to install, and no separate sequential skill either; the `CLAUDE.md` line above is the way back to one-at-a-time.
 
@@ -74,7 +77,7 @@ This is a real bug, still unfixed, and users report it across [harnesses](https:
 
 ## It's working if
 
-- A round arrives as a numbered list, each question with its recommendation on a separate `➡️` line, and you can answer the whole round by number.
+- A round arrives as clickable questions, several per prompt, each with the recommendation marked and an "Other" you can type into. In a harness with no question tool it arrives as a numbered list with each recommendation on a `➡️` line, and you can answer the whole round by number.
 - Nothing in a round needs another question in the same round answered first.
 - Later rounds ask things the first round could not have asked.
 - It goes and looks facts up (reading files, dispatching a sub-agent) rather than asking you something it could have found out.
